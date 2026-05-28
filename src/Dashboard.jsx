@@ -2281,7 +2281,7 @@ export default function Dashboard90Dias() {
                     Edita cualquier campo y presiona <span className="text-violet-400">OK</span> o <span className="text-violet-400">Enter</span> — los demás se recalculan solos
                   </p>
 
-                  <div className="flex flex-col sm:flex-row gap-3 items-end">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
 
                     {/* Columna 1 — Ingreso */}
                     <div className="flex-1">
