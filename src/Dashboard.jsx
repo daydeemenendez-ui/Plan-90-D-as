@@ -1344,7 +1344,7 @@ export default function Dashboard90Dias() {
             >
               {phaseLabels[phase - 1].toUpperCase()}
             </div>
-            <div className="text-xs text-zinc-400 mt-0.5 truncate sm:max-w-xs sm:whitespace-normal">
+            <div className="text-xs text-zinc-400 mt-0.5 leading-relaxed break-words">
               {phase === 1 && "Semanas 1–4 · Aprende técnica. Crea el hábito."}
               {phase === 2 && "Semanas 5–8 · Sube el peso. Reinvierte. Registra."}
               {phase === 3 && "Semanas 9–12 · Intensidad máxima. Mide cambios."}
@@ -1415,8 +1415,8 @@ export default function Dashboard90Dias() {
             )}
 
             {/* Meta principal editable */}
-            <div className="flex items-center gap-1 mt-1">
-              <span className="text-xs text-zinc-600">🏅</span>
+            <div className="flex items-center gap-1 mt-1 min-w-0 overflow-hidden">
+              <span className="text-xs text-zinc-600 flex-shrink-0">🏅</span>
               {editingMainGoal ? (
                 <input
                   autoFocus
@@ -1429,11 +1429,11 @@ export default function Dashboard90Dias() {
                 />
               ) : (
                 <span
-                  className="text-xs text-zinc-500 cursor-pointer hover:text-zinc-300 transition-colors group flex items-center gap-1"
+                  className="text-xs text-zinc-500 cursor-pointer hover:text-zinc-300 transition-colors group flex items-center gap-1 min-w-0 overflow-hidden"
                   onClick={() => { setMainGoalInput(state.mainGoal); setEditingMainGoal(true); }}
                 >
-                  {state.mainGoal || <span className="text-zinc-700">Meta principal 90 días...</span>}
-                  <span className="opacity-0 group-hover:opacity-60 text-zinc-600 transition-opacity">
+                  <span className="truncate">{state.mainGoal || <span className="text-zinc-700">Meta principal 90 días...</span>}</span>
+                  <span className="opacity-0 group-hover:opacity-60 text-zinc-600 transition-opacity flex-shrink-0">
                     <svg className="w-2.5 h-2.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 2l3 3-8 8H3v-3l8-8z"/></svg>
                   </span>
                 </span>
@@ -1441,8 +1441,8 @@ export default function Dashboard90Dias() {
             </div>
 
             {/* Meta del mes editable */}
-            <div className="flex items-center gap-1 mt-0.5">
-              <span className="text-xs text-zinc-600">💰</span>
+            <div className="flex items-center gap-1 mt-0.5 min-w-0 overflow-hidden">
+              <span className="text-xs text-zinc-600 flex-shrink-0">💰</span>
               {editingMonthGoal ? (
                 <input
                   autoFocus
@@ -1455,11 +1455,11 @@ export default function Dashboard90Dias() {
                 />
               ) : (
                 <span
-                  className="text-xs text-zinc-600 cursor-pointer hover:text-zinc-400 transition-colors group flex items-center gap-1"
+                  className="text-xs text-zinc-600 cursor-pointer hover:text-zinc-400 transition-colors group flex items-center gap-1 min-w-0 overflow-hidden"
                   onClick={() => { setMonthGoalInput(state.monthGoal); setEditingMonthGoal(true); }}
                 >
-                  {state.monthGoal || <span className="text-zinc-700">Meta del mes...</span>}
-                  <span className="opacity-0 group-hover:opacity-60 text-zinc-600 transition-opacity">
+                  <span className="truncate">{state.monthGoal || <span className="text-zinc-700">Meta del mes...</span>}</span>
+                  <span className="opacity-0 group-hover:opacity-60 text-zinc-600 transition-opacity flex-shrink-0">
                     <svg className="w-2.5 h-2.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 2l3 3-8 8H3v-3l8-8z"/></svg>
                   </span>
                 </span>
@@ -1548,11 +1548,11 @@ export default function Dashboard90Dias() {
                         setEditingTaskIdx(null);
                       }
                     }}
-                    className="flex-1 bg-transparent border-b border-amber-500/40 text-sm text-white outline-none"
+                    className="flex-1 min-w-0 bg-transparent border-b border-amber-500/40 text-sm text-white outline-none"
                   />
                 ) : (
                   <span
-                    className={`flex-1 text-sm cursor-pointer transition-colors ${
+                    className={`flex-1 min-w-0 text-sm cursor-pointer transition-colors break-words ${
                       task.done ? "line-through text-zinc-600" : "text-zinc-300 hover:text-white"
                     }`}
                     onClick={() => { setEditingTaskIdx(idx); setEditingTaskValue(task.label); }}
@@ -1622,8 +1622,8 @@ export default function Dashboard90Dias() {
           >
             {/* Progreso del día */}
             <div className="glass-card rounded-2xl p-4 sm:p-5">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="font-black text-white">Hábitos del Día {state.currentDay}</h2>
+              <div className="flex items-center justify-between mb-3 gap-2">
+                <h2 className="font-black text-white text-sm sm:text-base min-w-0">Hábitos del Día {state.currentDay}</h2>
                 <span
                   className={`text-sm font-bold px-3 py-1 rounded-xl ${
                     totalChecked === totalHabits
@@ -1763,12 +1763,9 @@ export default function Dashboard90Dias() {
                   </div>
                   {penaltyActive ? (
                     <>
-                      <div className="text-xs text-zinc-400 mb-1">
-                        Hábitos sin cumplir hoy:{" "}
-                        <span className="text-white font-bold">{totalHabits - totalChecked}</span>
-                        {" · "}Penalización estimada:{" "}
-                        <span className="text-rose-400 font-black">-{xpLoss} XP</span>
-                        {" · "}
+                      <div className="text-xs text-zinc-400 mb-1 flex flex-wrap gap-x-2 gap-y-0.5">
+                        <span>Sin cumplir: <span className="text-white font-bold">{totalHabits - totalChecked}</span></span>
+                        <span>Penalización: <span className="text-rose-400 font-black">-{xpLoss} XP</span></span>
                         <span className="text-amber-400 font-bold">-{coinLoss} 🪙</span>
                       </div>
                       <div className="text-xs text-zinc-600">
@@ -2075,12 +2072,12 @@ export default function Dashboard90Dias() {
                     <p className="text-[10px] text-zinc-600 mb-4">Toca cualquier valor de <span className="text-teal-400">Meta $</span> para editar · el total del mes se actualiza solo</p>
 
                     {/* Cabecera de columnas */}
-                    <div className="grid grid-cols-5 gap-2 mb-2 px-1">
-                      <div className="text-[10px] text-zinc-600 font-black uppercase tracking-widest">Sem</div>
-                      <div className="text-[10px] text-zinc-600 font-black uppercase tracking-widest text-center">PDFs</div>
-                      <div className="text-[10px] text-zinc-600 font-black uppercase tracking-widest text-center">Inv/día</div>
-                      <div className="text-[10px] text-zinc-600 font-black uppercase tracking-widest text-center">Meta $</div>
-                      <div className="text-[10px] text-zinc-600 font-black uppercase tracking-widest text-center">Real</div>
+                    <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-2 px-1">
+                      <div className="text-[9px] sm:text-[10px] text-zinc-600 font-black uppercase tracking-wide sm:tracking-widest">Sem</div>
+                      <div className="text-[9px] sm:text-[10px] text-zinc-600 font-black uppercase tracking-wide sm:tracking-widest text-center">PDFs</div>
+                      <div className="text-[9px] sm:text-[10px] text-zinc-600 font-black uppercase tracking-wide sm:tracking-widest text-center">Inv/d</div>
+                      <div className="text-[9px] sm:text-[10px] text-zinc-600 font-black uppercase tracking-wide sm:tracking-widest text-center">Meta $</div>
+                      <div className="text-[9px] sm:text-[10px] text-zinc-600 font-black uppercase tracking-wide sm:tracking-widest text-center">Real</div>
                     </div>
 
                     {/* Filas de semanas */}
@@ -2091,7 +2088,7 @@ export default function Dashboard90Dias() {
                         return (
                           <div
                             key={w.weekNum}
-                            className={`grid grid-cols-5 gap-2 items-center px-3 py-2.5 rounded-xl border transition-all ${
+                            className={`grid grid-cols-5 gap-1 sm:gap-2 items-center px-2 sm:px-3 py-2.5 rounded-xl border transition-all ${
                               w.isCurrent
                                 ? "border-amber-500/40 bg-amber-500/8"
                                 : done && w.actualSales > 0
@@ -2109,11 +2106,11 @@ export default function Dashboard90Dias() {
                               )}
                             </div>
                             {/* PDFs — se recalcula con precio */}
-                            <div className={`text-sm font-black text-center ${w.isCurrent ? "text-white" : "text-zinc-300"}`}>
+                            <div className={`text-xs sm:text-sm font-black text-center ${w.isCurrent ? "text-white" : "text-zinc-300"}`}>
                               {w.sales}
                             </div>
                             {/* Inv/día */}
-                            <div className={`text-sm font-bold text-center ${w.isCurrent ? "text-white" : "text-zinc-400"}`}>
+                            <div className={`text-xs sm:text-sm font-bold text-center ${w.isCurrent ? "text-white" : "text-zinc-400"}`}>
                               ${w.invDay}
                             </div>
                             {/* Meta $ — editable */}
@@ -2160,7 +2157,7 @@ export default function Dashboard90Dias() {
                               ) : (
                                 <button
                                   onClick={() => { setEditingWeekIncome(w.weekIdx); setWeekIncomeInput(String(w.income)); }}
-                                  className={`text-sm font-black w-full text-center rounded hover:bg-teal-500/10 transition-colors px-1 ${w.isCurrent ? "text-amber-400" : "text-zinc-300 hover:text-teal-300"}`}
+                                  className={`text-xs sm:text-sm font-black w-full text-center rounded hover:bg-teal-500/10 transition-colors px-0.5 ${w.isCurrent ? "text-amber-400" : "text-zinc-300 hover:text-teal-300"}`}
                                   title="Toca para editar"
                                 >
                                   ${w.income.toLocaleString()}
@@ -2168,11 +2165,11 @@ export default function Dashboard90Dias() {
                               )}
                             </div>
                             {/* Real */}
-                            <div className={`text-sm font-bold text-center ${
+                            <div className={`text-xs sm:text-sm font-bold text-center ${
                               done && w.actualSales > 0 ? "text-teal-400" : w.actualSales > 0 ? "text-zinc-400" : "text-zinc-700"
                             }`}>
                               {w.actualSales > 0 ? w.actualSales : "—"}
-                              {done && w.actualSales > 0 && <span className="ml-0.5 text-xs">✓</span>}
+                              {done && w.actualSales > 0 && <span className="ml-0.5 text-[10px]">✓</span>}
                             </div>
                           </div>
                         );
@@ -2180,9 +2177,9 @@ export default function Dashboard90Dias() {
                     </div>
 
                     {/* Total del mes */}
-                    <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center justify-between">
+                    <div className="mt-3 pt-3 border-t border-zinc-800 flex flex-wrap items-center justify-between gap-y-1">
                       <span className="text-xs text-zinc-500 font-bold">Total mes</span>
-                      <div className="flex gap-4">
+                      <div className="flex flex-wrap gap-x-3 gap-y-1">
                         <span className="text-xs text-zinc-400">
                           <span className="text-white font-black">{weeks.reduce((a, w) => a + w.sales, 0)}</span> PDFs
                         </span>
@@ -3132,13 +3129,13 @@ export default function Dashboard90Dias() {
                             showNotification(`🎁 ¡Recompensa del Mes ${idx + 1} canjeada!`);
                           }}
                           disabled={!canRedeem}
-                          className={`w-full py-2.5 rounded-xl font-black text-xs tracking-widest transition-all ${
+                          className={`w-full py-2.5 rounded-xl font-black text-xs tracking-wide sm:tracking-widest transition-all ${
                             canRedeem
                               ? "bg-amber-500 text-zinc-900 hover:bg-amber-400 active:scale-95"
                               : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
                           }`}
                         >
-                          CANJEAR ({cost.toLocaleString()} 🪙)
+                          <span className="truncate block">CANJEAR ({cost.toLocaleString()} 🪙)</span>
                         </button>
                       )}
                     </div>
