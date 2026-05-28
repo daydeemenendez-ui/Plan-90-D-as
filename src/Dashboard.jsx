@@ -21,6 +21,7 @@ const DEFAULT_WEEKLY_SCHEDULE = [
 const INITIAL_STATE = {
   currentDay: 1,
   currentWeek: 1,
+  planCompleted: false,
   xp: 0,
   level: 1,
   streak: 0,
@@ -201,6 +202,7 @@ function mergeState(initial, saved) {
     selectedAvatar: saved.selectedAvatar ?? null,
     mainGoal: saved.mainGoal || "",
     monthGoal: saved.monthGoal || "",
+    planCompleted: saved.planCompleted ?? false,
     userName: saved.userName || "",
     userSubtitle: saved.userSubtitle || "",
     monthlyTargets: saved.monthlyTargets && saved.monthlyTargets.length === 3
@@ -409,6 +411,7 @@ export default function Dashboard90Dias() {
   // Modal de avatares
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [congratsOpen, setCongratsOpen] = useState(false);
   // Edición inline de metas del perfil
   const [editingMainGoal, setEditingMainGoal] = useState(false);
   const [editingMonthGoal, setEditingMonthGoal] = useState(false);
@@ -586,22 +589,43 @@ export default function Dashboard90Dias() {
   };
 
   const advanceWeek = () => {
-    if (state.currentWeek >= 12) return;
+    if (state.planCompleted) return;
+    const isLastWeek = state.currentWeek === 12;
     setState((s) => {
       const allChecked = Object.values(s.todayChecks).every(Boolean);
+      const newStreak = allChecked ? s.streak + 1 : s.streak;
+      const isMonth3 = s.currentWeek >= 9;
+
+      // Bono por racha múltiplo de 7
+      let bonusXP = 0, bonusCoins = 0;
+      if (allChecked && newStreak > 0 && newStreak % 7 === 0) {
+        bonusXP    = isMonth3 ? 50  : 30;
+        bonusCoins = isMonth3 ? 100 : 50;
+        setTimeout(() => showNotification(
+          `${isMonth3 ? "👑" : "⚡"} ¡Racha ${newStreak} semanas! +${bonusXP} XP +${bonusCoins} 🪙`
+        ), 600);
+      }
+
       const next = {
         ...s,
-        currentWeek: s.currentWeek + 1,
-        currentDay: s.currentDay + 7,
-        todayChecks: Object.fromEntries(Object.keys(s.todayChecks).map((k) => [k, false])),
+        currentWeek:     isLastWeek ? 12 : s.currentWeek + 1,
+        currentDay:      isLastWeek ? 90 : s.currentDay + 7,
+        planCompleted:   isLastWeek ? true : s.planCompleted,
+        todayChecks:     Object.fromEntries(Object.keys(s.todayChecks).map((k) => [k, false])),
         podcastsThisWeek: 0,
-        walksThisWeek: 0,
-        streak: allChecked ? s.streak + 1 : s.streak,
-        xp: s.xp + 50,
-        coins: s.coins + 20,
-        keyTasks: s.keyTasks.map((t) => ({ ...t, done: false })),
+        walksThisWeek:   0,
+        streak:          newStreak,
+        xp:              s.xp + 50 + bonusXP,
+        coins:           s.coins + 20 + bonusCoins,
+        keyTasks:        s.keyTasks.map((t) => ({ ...t, done: false })),
       };
-      setTimeout(() => showNotification(`Semana ${s.currentWeek + 1} comenzada! +50 XP 🚀`), 0);
+
+      if (isLastWeek) {
+        setTimeout(() => setCongratsOpen(true), 400);
+      } else {
+        setTimeout(() => showNotification(`Semana ${s.currentWeek + 1} comenzada! +50 XP 🚀`), 0);
+      }
+
       return applyAchievements(next);
     });
   };
@@ -1166,6 +1190,72 @@ export default function Dashboard90Dias() {
           </div>
         );
       })()}
+
+      {/* ── Modal felicitaciones 90 días */}
+      <AnimatePresence>
+        {congratsOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/90 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0, y: 30 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="w-full max-w-sm bg-zinc-900 border border-amber-500/40 rounded-3xl p-6 shadow-[0_0_60px_rgba(245,158,11,0.2)] text-center"
+            >
+              {/* Corona */}
+              <div className="text-6xl mb-3">👑</div>
+
+              {/* Título */}
+              <h2 className="text-2xl font-black text-amber-400 mb-1">
+                ¡LO LOGRASTE!
+              </h2>
+              <p className="text-sm text-zinc-400 mb-5 leading-relaxed">
+                {state.userName ? `${state.userName}, completaste` : "Completaste"} los{" "}
+                <span className="text-white font-black">90 días</span> del plan.
+                Eso no lo hace todo el mundo. 🔥
+              </p>
+
+              {/* Stats finales */}
+              <div className="grid grid-cols-2 gap-3 mb-5">
+                <div className="bg-zinc-800/80 rounded-2xl p-3 border border-zinc-700">
+                  <div className="text-xl font-black text-amber-400">{safeXP}</div>
+                  <div className="text-xs text-zinc-500">XP total</div>
+                </div>
+                <div className="bg-zinc-800/80 rounded-2xl p-3 border border-zinc-700">
+                  <div className="text-xl font-black text-violet-400">{state.coins}</div>
+                  <div className="text-xs text-zinc-500">🪙 monedas</div>
+                </div>
+                <div className="bg-zinc-800/80 rounded-2xl p-3 border border-zinc-700">
+                  <div className="text-xl font-black text-teal-400">${totalRevenue.toLocaleString()}</div>
+                  <div className="text-xs text-zinc-500">generados</div>
+                </div>
+                <div className="bg-zinc-800/80 rounded-2xl p-3 border border-zinc-700">
+                  <div className="text-xl font-black text-rose-400">{state.streak}</div>
+                  <div className="text-xs text-zinc-500">racha máx.</div>
+                </div>
+              </div>
+
+              <p className="text-xs text-zinc-600 mb-5">
+                Nivel <span className="text-amber-400 font-black">{level}</span> ·{" "}
+                <span className="text-amber-400 font-black">{state.achievements.length}</span> logros desbloqueados ·{" "}
+                <span className="text-teal-400 font-black">{totalSales}</span> PDFs vendidos
+              </p>
+
+              <button
+                onClick={() => setCongratsOpen(false)}
+                className="w-full py-3 rounded-2xl bg-amber-500 text-zinc-900 font-black text-sm hover:bg-amber-400 active:scale-95 transition-all shadow-[0_0_20px_rgba(245,158,11,0.4)]"
+              >
+                ¡A por los próximos 90 días! 🚀
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Modal confirmación reset */}
       {resetModalOpen && (
@@ -1804,11 +1894,13 @@ export default function Dashboard90Dias() {
             {/* Avanzar semana */}
             <button
               onClick={advanceWeek}
-              disabled={state.currentWeek >= 12}
+              disabled={state.planCompleted}
               className="w-full py-3 rounded-2xl border border-zinc-700 text-zinc-500 hover:border-amber-500/50 hover:text-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.12)] transition-all duration-300 text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed btn-premium"
             >
-              {state.currentWeek >= 12
-                ? "🏆 Plan completado!"
+              {state.planCompleted
+                ? "🏆 Plan completado — ¡Lo lograste!"
+                : state.currentWeek === 12
+                ? "🏆 Finalizar Plan 90 Días"
                 : `→ Completar semana ${state.currentWeek} y avanzar`}
             </button>
           </motion.div>
@@ -3172,7 +3264,7 @@ export default function Dashboard90Dias() {
 
             {/* Reset */}
             {(() => {
-              const planCompleted = state.currentWeek >= 12;
+              const planCompleted = state.planCompleted || state.currentWeek >= 12;
               return (
                 <div className="relative">
                   <button
