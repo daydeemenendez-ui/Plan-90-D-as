@@ -2198,12 +2198,12 @@ export default function Dashboard90Dias() {
 
             {/* Registrar ventas */}
             <div className="glass-card rounded-2xl p-4 sm:p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs text-teal-400 font-black uppercase tracking-widest">
+              <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+                <h3 className="text-xs text-teal-400 font-black uppercase tracking-widest flex-shrink-0">
                   Registrar Ventas
                 </h3>
-                <span className="text-xs text-zinc-500">
-                  Precio actual: <span className="text-violet-400 font-black">${pdfPrice}</span> por PDF
+                <span className="text-xs text-zinc-500 flex-shrink-0">
+                  Precio: <span className="text-violet-400 font-black">${pdfPrice}</span>/PDF
                 </span>
               </div>
               <div className="flex gap-3">
@@ -2214,7 +2214,7 @@ export default function Dashboard90Dias() {
                   onChange={(e) => setSalesInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addSales()}
                   placeholder="# de PDFs vendidos"
-                  className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-amber-500 transition-colors"
+                  className="flex-1 min-w-0 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-amber-500 transition-colors"
                 />
                 <button
                   onClick={addSales}
@@ -2271,9 +2271,9 @@ export default function Dashboard90Dias() {
 
               return (
                 <div className="bg-zinc-900 rounded-2xl border border-violet-500/30 p-5">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-base">⚙️</span>
-                    <h3 className="text-xs text-violet-400 font-black uppercase tracking-widest">
+                  <div className="flex items-center gap-2 mb-2 min-w-0">
+                    <span className="text-base flex-shrink-0">⚙️</span>
+                    <h3 className="text-xs text-violet-400 font-black uppercase tracking-wide truncate">
                       Calculadora · Mes {currentMonth} · S{state.currentWeek}
                     </h3>
                   </div>
@@ -2303,7 +2303,7 @@ export default function Dashboard90Dias() {
                             }
                           }}
                           placeholder={`${weekIncome}`}
-                          className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-amber-500 transition-colors"
+                          className="flex-1 min-w-0 bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-amber-500 transition-colors"
                         />
                         <button
                           onClick={() => {
@@ -2337,7 +2337,7 @@ export default function Dashboard90Dias() {
                             }
                           }}
                           placeholder="20"
-                          className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-violet-500 transition-colors"
+                          className="flex-1 min-w-0 bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-violet-500 transition-colors"
                         />
                         <button
                           onClick={() => {
@@ -2370,7 +2370,7 @@ export default function Dashboard90Dias() {
                             }
                           }}
                           placeholder={`${currentPdfs}`}
-                          className="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-violet-500 transition-colors"
+                          className="flex-1 min-w-0 bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-violet-500 transition-colors"
                         />
                         <button
                           onClick={() => {
