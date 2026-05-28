@@ -2510,7 +2510,7 @@ export default function Dashboard90Dias() {
                   return (
                     <div
                       key={i}
-                      className={`p-4 rounded-xl border ${
+                      className={`p-4 rounded-xl border overflow-hidden ${
                         book.done
                           ? "border-teal-500/40 bg-teal-500/5"
                           : "border-zinc-800 bg-zinc-950"
@@ -2575,7 +2575,7 @@ export default function Dashboard90Dias() {
                             }}
                             onKeyDown={(e) => e.key === "Enter" && updateBookPages(i)}
                             placeholder="Página actual"
-                            className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-teal-500 transition-colors"
+                            className="flex-1 min-w-0 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-teal-500 transition-colors"
                           />
                           <button
                             onClick={() => updateBookPages(i)}
