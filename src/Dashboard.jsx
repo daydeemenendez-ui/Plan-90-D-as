@@ -81,6 +81,7 @@ const INITIAL_STATE = {
   planStartDate: null,
   weekStartDate: null,
   weekUnlockedNotified: false,
+  notes: [],
 };
 
 const XP_PER_ACTION = {
@@ -138,6 +139,24 @@ const AVATARS = [
   { id: 1, src: "/img/Gemini_Generated_Image_ (1).png", name: "Guerrera Real"   },
   { id: 2, src: "/img/Gemini_Generated_Image_ (2).png", name: "Elfa Druida"     },
   { id: 3, src: "/img/Gemini_Generated_Image_ (3).png", name: "Caballero Oscuro"},
+];
+
+const MOTIVATIONAL_QUOTES = [
+  { text: "El éxito no es el final, el fracaso no es fatal: lo que cuenta es el coraje de continuar.", author: "Winston Churchill" },
+  { text: "No cuentes los días, haz que los días cuenten.", author: "Muhammad Ali" },
+  { text: "La disciplina es el puente entre metas y logros.", author: "Jim Rohn" },
+  { text: "El dolor que sientes hoy será la fuerza que sentirás mañana.", author: "Arnold Schwarzenegger" },
+  { text: "No esperes la oportunidad perfecta. Tómala y hazla perfecta.", author: "Gary Vaynerchuk" },
+  { text: "Cada día es una nueva oportunidad de cambiar tu vida.", author: "Anónimo" },
+  { text: "La constancia no se trata de ser perfecto, se trata de seguir adelante.", author: "Tony Robbins" },
+  { text: "Tu único límite eres tú mismo.", author: "Anónimo" },
+  { text: "Haz hoy lo que otros no harán para vivir mañana como otros no pueden.", author: "Jerry Rice" },
+  { text: "Los campeones siguen jugando hasta que lo hacen bien.", author: "Billie Jean King" },
+  { text: "No te rindas. Sufrir ahora y vivir el resto de tu vida como campeón.", author: "Muhammad Ali" },
+  { text: "El trabajo duro supera al talento cuando el talento no trabaja duro.", author: "Tim Notke" },
+  { text: "Sueña en grande. Trabaja duro. Mantén el enfoque.", author: "Anónimo" },
+  { text: "La motivación te pone en marcha. El hábito te mantiene en movimiento.", author: "Jim Ryun" },
+  { text: "No midas tu riqueza por el dinero que tienes, sino por lo que perderías si lo perdieras todo.", author: "Anónimo" },
 ];
 
 // ─────────────────────────────────────────
@@ -211,6 +230,7 @@ function mergeState(initial, saved) {
     planStartDate: saved.planStartDate ?? null,
     weekStartDate: saved.weekStartDate ?? null,
     weekUnlockedNotified: saved.weekUnlockedNotified ?? false,
+    notes: saved.notes ?? [],
     userName: saved.userName || "",
     userSubtitle: saved.userSubtitle || "",
     monthlyTargets: saved.monthlyTargets && saved.monthlyTargets.length === 3
@@ -468,11 +488,24 @@ export default function Dashboard90Dias() {
   // Ingreso custom por semana dentro de la tabla del mes seleccionado
   const [editingWeekIncome, setEditingWeekIncome] = useState(null); // weekIdx 0-based | null
   const [weekIncomeInput, setWeekIncomeInput] = useState("");
+  // Frases motivadoras — rotan cada 8 segundos
+  const [quoteIdx, setQuoteIdx] = useState(() => Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length));
+  // Notas
+  const [noteInput, setNoteInput] = useState("");
+  const [noteToDelete, setNoteToDelete] = useState(null);
 
   // ── Auto-save en localStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
+
+  // ── Rotar frases motivadoras cada 8 s
+  useEffect(() => {
+    const id = setInterval(() => {
+      setQuoteIdx((i) => (i + 1) % MOTIVATIONAL_QUOTES.length);
+    }, 8000);
+    return () => clearInterval(id);
+  }, []);
 
   // ── Valores derivados
   const safeXP = isNaN(state.xp) ? 0 : (state.xp || 0);
@@ -1796,6 +1829,7 @@ export default function Dashboard90Dias() {
               { id: "mente",   label: "🧠 Mente" },
               { id: "cuerpo",  label: "🏋️ Cuerpo" },
               { id: "logros",  label: "🏆 Logros" },
+              { id: "resumen", label: "📝 Notas" },
             ].map((tab) => (
               <motion.button
                 key={tab.id}
@@ -3441,6 +3475,155 @@ export default function Dashboard90Dias() {
             })()}
           </motion.div>
         )}
+
+        {/* ══════════════════════════════════════
+            TAB: RESUMEN
+        ══════════════════════════════════════ */}
+        {activeTab === "resumen" && (
+          <motion.div
+            key="resumen"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            {/* ── Frase motivadora */}
+            <div
+              className="relative rounded-2xl border border-amber-500/20 overflow-hidden p-4 sm:p-5"
+              style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(139,92,246,0.04) 100%)" }}
+            >
+              <div className="absolute top-3 right-4 text-3xl opacity-10 select-none">"</div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={quoteIdx}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                >
+                  <p className="text-sm sm:text-base font-bold text-zinc-100 leading-relaxed pr-6 italic">
+                    "{MOTIVATIONAL_QUOTES[quoteIdx].text}"
+                  </p>
+                  <p className="text-xs text-amber-400 font-black mt-2">— {MOTIVATIONAL_QUOTES[quoteIdx].author}</p>
+                </motion.div>
+              </AnimatePresence>
+              <div className="flex gap-1 mt-3">
+                {MOTIVATIONAL_QUOTES.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setQuoteIdx(i)}
+                    className={`h-1 rounded-full transition-all duration-300 ${i === quoteIdx ? "bg-amber-400 w-5" : "bg-zinc-700 w-1.5 hover:bg-zinc-500"}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* ── Notas */}
+            <div className="glass-card rounded-2xl p-4 sm:p-5 mt-4 sm:mt-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xs text-zinc-400 font-black uppercase tracking-widest">📝 Mis notas</h3>
+                <span className="text-xs text-zinc-600 font-bold">{state.notes.length} nota{state.notes.length !== 1 ? "s" : ""}</span>
+              </div>
+
+              {/* Input nueva nota */}
+              <div className="flex gap-2 mb-4">
+                <textarea
+                  value={noteInput}
+                  onChange={(e) => setNoteInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      if (!noteInput.trim()) return;
+                      const now = new Date();
+                      const label = `${now.getDate().toString().padStart(2,"0")}/${(now.getMonth()+1).toString().padStart(2,"0")} ${now.getHours().toString().padStart(2,"0")}:${now.getMinutes().toString().padStart(2,"0")}`;
+                      setState((s) => ({
+                        ...s,
+                        notes: [{ id: Date.now(), text: noteInput.trim(), date: label, week: s.currentWeek, day: s.currentDay }, ...s.notes],
+                      }));
+                      setNoteInput("");
+                    }
+                  }}
+                  placeholder="Escribe una nota… (Enter para guardar, Shift+Enter para salto de línea)"
+                  rows={2}
+                  className="flex-1 min-w-0 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-amber-500 transition-colors resize-none leading-relaxed"
+                />
+                <button
+                  onClick={() => {
+                    if (!noteInput.trim()) return;
+                    const now = new Date();
+                    const label = `${now.getDate().toString().padStart(2,"0")}/${(now.getMonth()+1).toString().padStart(2,"0")} ${now.getHours().toString().padStart(2,"0")}:${now.getMinutes().toString().padStart(2,"0")}`;
+                    setState((s) => ({
+                      ...s,
+                      notes: [{ id: Date.now(), text: noteInput.trim(), date: label, week: s.currentWeek, day: s.currentDay }, ...s.notes],
+                    }));
+                    setNoteInput("");
+                  }}
+                  className="w-11 h-11 self-end rounded-xl bg-amber-500 text-zinc-900 font-black text-lg hover:bg-amber-400 active:scale-95 transition-all flex-shrink-0 flex items-center justify-center"
+                >+</button>
+              </div>
+
+              {/* Lista de notas */}
+              {state.notes.length === 0 ? (
+                <div className="text-center py-8 text-zinc-700 text-sm">
+                  <div className="text-3xl mb-2">📋</div>
+                  Aún no hay notas. ¡Escribe la primera!
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+                  <AnimatePresence initial={false}>
+                    {state.notes.map((note) => (
+                      <motion.div
+                        key={note.id}
+                        initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: 40, scale: 0.95 }}
+                        transition={{ duration: 0.25, ease: "easeOut" }}
+                        className={`group relative rounded-xl border p-3 transition-all ${
+                          noteToDelete === note.id
+                            ? "border-rose-500/50 bg-rose-500/8"
+                            : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-700"
+                        }`}
+                      >
+                        <p className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap pr-8">{note.text}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-[10px] text-zinc-600 font-bold">{note.date}</span>
+                          <span className="text-[10px] text-zinc-700">·</span>
+                          <span className="text-[10px] text-zinc-700">Sem {note.week} · Día {note.day}</span>
+                        </div>
+                        {/* Botón eliminar */}
+                        {noteToDelete === note.id ? (
+                          <div className="flex gap-2 mt-2">
+                            <button
+                              onClick={() => {
+                                setState((s) => ({ ...s, notes: s.notes.filter((n) => n.id !== note.id) }));
+                                setNoteToDelete(null);
+                              }}
+                              className="flex-1 py-1.5 rounded-lg bg-rose-500 text-white text-xs font-black hover:bg-rose-400 transition-colors active:scale-95"
+                            >Sí, eliminar</button>
+                            <button
+                              onClick={() => setNoteToDelete(null)}
+                              className="flex-1 py-1.5 rounded-lg border border-zinc-700 text-zinc-400 text-xs font-bold hover:border-zinc-500 hover:text-white transition-colors"
+                            >Cancelar</button>
+                          </div>
+                        ) : (
+                          <motion.button
+                            onClick={() => setNoteToDelete(note.id)}
+                            whileTap={{ scale: 0.85 }}
+                            className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-lg bg-zinc-800 hover:bg-rose-500/20 hover:text-rose-400 text-zinc-600 flex items-center justify-center text-xs"
+                          >
+                            <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 4h10M6 4V2.5h4V4M5 4l.5 9h5L11 4"/>
+                            </svg>
+                          </motion.button>
+                        )}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
       </div>
     </div>
   );
