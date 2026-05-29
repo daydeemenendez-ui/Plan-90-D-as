@@ -77,6 +77,10 @@ const INITIAL_STATE = {
   selectedAvatar: null,
   mainGoal: "",
   monthGoal: "",
+  planStarted: false,
+  planStartDate: null,
+  weekStartDate: null,
+  weekUnlockedNotified: false,
 };
 
 const XP_PER_ACTION = {
@@ -203,6 +207,10 @@ function mergeState(initial, saved) {
     mainGoal: saved.mainGoal || "",
     monthGoal: saved.monthGoal || "",
     planCompleted: saved.planCompleted ?? false,
+    planStarted: saved.planStarted ?? false,
+    planStartDate: saved.planStartDate ?? null,
+    weekStartDate: saved.weekStartDate ?? null,
+    weekUnlockedNotified: saved.weekUnlockedNotified ?? false,
     userName: saved.userName || "",
     userSubtitle: saved.userSubtitle || "",
     monthlyTargets: saved.monthlyTargets && saved.monthlyTargets.length === 3
@@ -494,6 +502,30 @@ export default function Dashboard90Dias() {
     setTimeout(() => setNotification(null), 3000);
   };
 
+  // ── Semana desbloqueada: han pasado 7 días desde el inicio de la semana
+  const weekUnlocked =
+    state.planStarted &&
+    !state.planCompleted &&
+    state.weekStartDate != null &&
+    Date.now() >= state.weekStartDate + 7 * 24 * 60 * 60 * 1000;
+
+  // ── Revisar desbloqueo de semana cada minuto y notificar al usuario
+  useEffect(() => {
+    const check = () => {
+      setState((s) => {
+        if (!s.planStarted || s.planCompleted || s.weekUnlockedNotified || !s.weekStartDate) return s;
+        if (Date.now() >= s.weekStartDate + 7 * 24 * 60 * 60 * 1000) {
+          setTimeout(() => showNotification("🔓 ¡Semana completada! Ya puedes avanzar a la siguiente 🚀"), 300);
+          return { ...s, weekUnlockedNotified: true };
+        }
+        return s;
+      });
+    };
+    check();
+    const id = setInterval(check, 60_000);
+    return () => clearInterval(id);
+  }, []);
+
   const applyAchievements = (nextState) => {
     const newAchievements = checkNewAchievements(nextState);
     if (newAchievements) {
@@ -508,6 +540,20 @@ export default function Dashboard90Dias() {
   };
 
   // ── Acciones
+  // ── Iniciar el plan (guarda la medianoche del día actual como inicio de semana)
+  const startPlan = () => {
+    const d = new Date();
+    const midnight = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    setState((s) => ({
+      ...s,
+      planStarted: true,
+      planStartDate: Date.now(),
+      weekStartDate: midnight,
+      weekUnlockedNotified: false,
+    }));
+    showNotification("🚀 ¡Plan de 90 días iniciado! A por ello 🔥");
+  };
+
   const toggleHabit = (id) => {
     setState((s) => {
       const wasChecked = s.todayChecks[id];
@@ -589,8 +635,10 @@ export default function Dashboard90Dias() {
   };
 
   const advanceWeek = () => {
-    if (state.planCompleted) return;
+    if (state.planCompleted || !weekUnlocked) return;
     const isLastWeek = state.currentWeek === 12;
+    const d = new Date();
+    const newWeekStartMidnight = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
     setState((s) => {
       const allChecked = Object.values(s.todayChecks).every(Boolean);
       const newStreak = allChecked ? s.streak + 1 : s.streak;
@@ -618,6 +666,8 @@ export default function Dashboard90Dias() {
         xp:              s.xp + 50 + bonusXP,
         coins:           s.coins + 20 + bonusCoins,
         keyTasks:        s.keyTasks.map((t) => ({ ...t, done: false })),
+        weekStartDate:   isLastWeek ? s.weekStartDate : newWeekStartMidnight,
+        weekUnlockedNotified: false,
       };
 
       if (isLastWeek) {
@@ -1415,6 +1465,44 @@ export default function Dashboard90Dias() {
 
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
 
+        {/* ── Hero: Empezar Plan (solo visible antes de iniciar) */}
+        {!state.planStarted && (
+          <motion.div
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="mb-4 sm:mb-6 rounded-3xl border border-amber-500/40 bg-gradient-to-br from-amber-500/10 via-zinc-900/80 to-violet-500/8 p-5 sm:p-7 text-center relative overflow-hidden"
+            style={{ boxShadow: "0 0 60px rgba(245,158,11,0.12), 0 8px 32px rgba(0,0,0,0.5)" }}
+          >
+            {/* Orbs decorativos */}
+            <div className="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-amber-500/8 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-10 -right-10 w-36 h-36 rounded-full bg-violet-500/8 blur-3xl pointer-events-none" />
+
+            <div className="relative z-10">
+              <div className="text-4xl sm:text-5xl mb-3">🔥</div>
+              <h2 className="text-xl sm:text-2xl font-black text-white mb-1 tracking-tight">
+                ¿Listo para los{" "}
+                <span className="text-amber-400">90 días</span>?
+              </h2>
+              <p className="text-xs sm:text-sm text-zinc-400 mb-5 max-w-xs mx-auto leading-relaxed">
+                El plan comienza a las{" "}
+                <span className="text-amber-400 font-bold">00:00 de hoy</span>.
+                El contador de días y semanas se sincroniza con el tiempo real.
+              </p>
+              <motion.button
+                onClick={startPlan}
+                whileTap={{ scale: 0.96 }}
+                className="btn-start-glow btn-premium w-full sm:w-auto sm:min-w-[260px] py-4 sm:py-5 px-8 rounded-2xl text-base sm:text-lg font-black tracking-wide transition-all duration-200"
+              >
+                ⚡ EMPEZAR PLAN AHORA
+              </motion.button>
+              <p className="text-[10px] sm:text-xs text-zinc-600 mt-3">
+                Podrás avanzar de semana cada 7 días reales.
+              </p>
+            </div>
+          </motion.div>
+        )}
+
         {/* ── Phase Banner */}
         <div
           className={`mb-4 sm:mb-6 rounded-2xl border p-3 sm:p-4 flex items-center justify-between gap-3 sm:gap-4 ${
@@ -1892,17 +1980,46 @@ export default function Dashboard90Dias() {
             })()}
 
             {/* Avanzar semana */}
-            <button
-              onClick={advanceWeek}
-              disabled={state.planCompleted}
-              className="w-full py-3 rounded-2xl border border-zinc-700 text-zinc-500 hover:border-amber-500/50 hover:text-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.12)] transition-all duration-300 text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed btn-premium"
-            >
-              {state.planCompleted
-                ? "🏆 Plan completado — ¡Lo lograste!"
-                : state.currentWeek === 12
-                ? "🏆 Finalizar Plan 90 Días"
-                : `→ Completar semana ${state.currentWeek} y avanzar`}
-            </button>
+            {(() => {
+              const isCompleted = state.planCompleted;
+              const notStarted = !state.planStarted;
+              const locked = state.planStarted && !weekUnlocked && !isCompleted;
+              const ready = weekUnlocked && !isCompleted;
+
+              // Tiempo restante hasta desbloqueo (para mostrar en el botón bloqueado)
+              let daysLeft = null;
+              if (locked && state.weekStartDate) {
+                const msLeft = (state.weekStartDate + 7 * 24 * 60 * 60 * 1000) - Date.now();
+                daysLeft = Math.max(0, Math.ceil(msLeft / (24 * 60 * 60 * 1000)));
+              }
+
+              return (
+                <motion.button
+                  onClick={advanceWeek}
+                  disabled={isCompleted || locked || notStarted}
+                  whileTap={ready ? { scale: 0.97 } : {}}
+                  className={`w-full py-3 sm:py-4 rounded-2xl text-sm font-bold transition-all duration-300 btn-premium ${
+                    isCompleted
+                      ? "border border-zinc-700 text-zinc-500 opacity-60 cursor-not-allowed"
+                      : notStarted
+                      ? "border border-zinc-800 text-zinc-600 opacity-50 cursor-not-allowed"
+                      : locked
+                      ? "border border-zinc-700 text-zinc-600 cursor-not-allowed opacity-70"
+                      : "btn-week-ready border-0 cursor-pointer"
+                  }`}
+                >
+                  {isCompleted
+                    ? "🏆 Plan completado — ¡Lo lograste!"
+                    : notStarted
+                    ? "🔒 Inicia el plan para desbloquear"
+                    : locked
+                    ? `🔒 Bloqueado — faltan ${daysLeft === 1 ? "1 día" : `${daysLeft} días`} para avanzar`
+                    : state.currentWeek === 12
+                    ? "🏆 ¡Finalizar Plan 90 Días!"
+                    : `🚀 Completar semana ${state.currentWeek} y avanzar`}
+                </motion.button>
+              );
+            })()}
           </motion.div>
         )}
 

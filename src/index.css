@@ -235,6 +235,47 @@ textarea:focus {
   box-shadow: 0 0 0 1px rgba(245,158,11,0.3), 0 0 12px rgba(245,158,11,0.08);
 }
 
+/* ── Botón Empezar Plan */
+@keyframes startPulse {
+  0%, 100% {
+    box-shadow: 0 0 24px rgba(245,158,11,0.55), 0 0 60px rgba(245,158,11,0.2), 0 6px 24px rgba(0,0,0,0.5);
+  }
+  50% {
+    box-shadow: 0 0 50px rgba(245,158,11,0.85), 0 0 100px rgba(245,158,11,0.35), 0 6px 32px rgba(0,0,0,0.6);
+  }
+}
+.btn-start-glow {
+  animation: startPulse 2s ease-in-out infinite;
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 45%, #fbbf24 100%);
+  color: #09090b;
+}
+.btn-start-glow:hover {
+  animation: startPulse 1s ease-in-out infinite;
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fde68a 100%);
+}
+
+/* ── Botón semana lista */
+@keyframes weekReadyGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(245,158,11,0.6), 0 0 50px rgba(245,158,11,0.25), 0 4px 16px rgba(0,0,0,0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(245,158,11,0.95), 0 0 90px rgba(245,158,11,0.45), 0 4px 24px rgba(0,0,0,0.5);
+    transform: scale(1.012);
+  }
+}
+.btn-week-ready {
+  animation: weekReadyGlow 1.4s ease-in-out infinite;
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 45%, #fbbf24 100%);
+  color: #09090b;
+  border-color: transparent !important;
+  font-weight: 900;
+}
+.btn-week-ready:hover {
+  animation: weekReadyGlow 0.8s ease-in-out infinite;
+}
+
 /* ── Notification */
 @keyframes slideInRight {
   from { transform: translateX(120%) scale(0.95); opacity: 0; }
