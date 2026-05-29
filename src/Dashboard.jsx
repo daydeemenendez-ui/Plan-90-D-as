@@ -1484,11 +1484,37 @@ export default function Dashboard90Dias() {
                 ¿Listo para los{" "}
                 <span className="text-amber-400">90 días</span>?
               </h2>
-              <p className="text-xs sm:text-sm text-zinc-400 mb-5 max-w-xs mx-auto leading-relaxed">
+              <p className="text-xs sm:text-sm text-zinc-400 mb-3 max-w-xs mx-auto leading-relaxed">
                 El plan comienza a las{" "}
                 <span className="text-amber-400 font-bold">00:00 de hoy</span>.
                 El contador de días y semanas se sincroniza con el tiempo real.
               </p>
+
+              {/* Checklist previa */}
+              <div className="bg-zinc-900/70 border border-amber-500/20 rounded-2xl px-4 py-3 mb-5 text-left max-w-sm mx-auto">
+                <p className="text-[11px] sm:text-xs font-black text-amber-400 uppercase tracking-widest mb-2">
+                  ⚠️ Antes de empezar, configura tu dashboard:
+                </p>
+                <ul className="space-y-1.5 text-xs text-zinc-400">
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500 flex-shrink-0 mt-0.5">→</span>
+                    <span>Escribe tu <span className="text-zinc-200 font-bold">nombre, meta principal y meta del mes</span> en el perfil de arriba.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500 flex-shrink-0 mt-0.5">→</span>
+                    <span>Ve a la pestaña <span className="text-zinc-200 font-bold">📋 Hoy</span> y revisa los hábitos — agrega o quita los que no sean para ti.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500 flex-shrink-0 mt-0.5">→</span>
+                    <span>Ve a <span className="text-zinc-200 font-bold">💼 Negocio</span> y ajusta las metas de ingreso mensual a tu realidad.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500 flex-shrink-0 mt-0.5">→</span>
+                    <span>Ve a <span className="text-zinc-200 font-bold">🏆 Logros</span> y configura tus recompensas para mantenerte motivado.</span>
+                  </li>
+                </ul>
+                <p className="text-[10px] text-zinc-600 mt-2.5">Una vez listo, presiona el botón. No podrás avanzar de semana hasta que pasen 7 días reales.</p>
+              </div>
               <motion.button
                 onClick={startPlan}
                 whileTap={{ scale: 0.96 }}
