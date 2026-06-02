@@ -615,7 +615,7 @@ export default function Dashboard90Dias() {
       };
 
       if (!wasChecked) {
-        setTimeout(() => showNotification(`+${XP_PER_ACTION[id]} XP ganados! 🔥`), 0);
+        setTimeout(() => showNotification(`+${XP_PER_ACTION[id]} XP +5 🪙 ganados! 🔥`), 0);
         if (allDone) setTimeout(() => showNotification("⚡ DÍA PERFECTO! +100 XP BONUS"), 1000);
       }
 
@@ -1029,7 +1029,7 @@ export default function Dashboard90Dias() {
               )}
 
               <div className="text-xs text-zinc-600 mt-3">
-                Recompensa fija: <span className="text-amber-400 font-bold">+10 XP</span> por completar
+                Recompensa fija: <span className="text-amber-400 font-bold">+10 XP</span> + <span className="text-violet-400 font-bold">+5 🪙</span> por completar
               </div>
             </div>
 
