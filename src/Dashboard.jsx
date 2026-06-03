@@ -1427,12 +1427,12 @@ export default function Dashboard90Dias() {
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm"
           onClick={(e) => { if (e.target === e.currentTarget) setAvatarModalOpen(false); }}
         >
-          <div className="w-full max-w-sm bg-zinc-900 border border-zinc-700 rounded-2xl p-4 sm:p-6 shadow-2xl">
+          <div className="w-full max-w-sm sm:max-w-3xl bg-zinc-900 border border-zinc-700 rounded-2xl p-4 sm:p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-black text-white text-base">Elige tu avatar</h2>
               <button onClick={() => setAvatarModalOpen(false)} className="text-zinc-500 hover:text-white transition-colors text-lg leading-none">×</button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-8 gap-3">
               {AVATARS.map((av) => (
                 <button
                   key={av.id}
