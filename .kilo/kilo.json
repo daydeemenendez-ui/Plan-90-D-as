@@ -1,4 +1,16 @@
 {
   "$schema": "https://app.kilo.ai/config.json",
-  "snapshot": false
+  "snapshot": false,
+  "mcp": {
+    "supabase": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@supabase/mcp-server-supabase@0.5.5",
+        "--access-token",
+        "{   \"servers\": {     \"supabase\": {       \"type\": \"http\",       \"url\": \"https://mcp.supabase.com/mcp?project_ref=sewoamxaafpcsbwsjubr\"     }   } }"
+      ]
+    }
+  }
 }
