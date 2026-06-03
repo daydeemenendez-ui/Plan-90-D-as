@@ -137,10 +137,14 @@ const HABITS = [
 ];
 
 const AVATARS = [
-  { id: 0, src: "/img/Gemini_Generated_Image_.png",     name: "Maga Lunar"      },
-  { id: 1, src: "/img/Gemini_Generated_Image_ (1).png", name: "Guerrera Real"   },
-  { id: 2, src: "/img/Gemini_Generated_Image_ (2).png", name: "Elfa Druida"     },
-  { id: 3, src: "/img/Gemini_Generated_Image_ (3).png", name: "Caballero Oscuro"},
+  { id: 0, src: "/img/3.webp",  name: "Guerrero"      },
+  { id: 1, src: "/img/4.webp",  name: "Mentalidad"    },
+  { id: 2, src: "/img/5.webp",  name: "Planificación" },
+  { id: 3, src: "/img/6.webp",  name: "Entrenamiento" },
+  { id: 4, src: "/img/7.webp",  name: "Negocio"       },
+  { id: 5, src: "/img/8.webp",  name: "Zen"           },
+  { id: 6, src: "/img/9.webp",  name: "Corredora"     },
+  { id: 7, src: "/img/10.webp", name: "Fitness"       },
 ];
 
 const MOTIVATIONAL_QUOTES = [
