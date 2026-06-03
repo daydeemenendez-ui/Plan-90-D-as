@@ -4,7 +4,15 @@ const SUPABASE_URL = "https://sewoamxaafpcsbwsjubr.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNld29hbXhhYWZwY3Nid3NqdWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzOTE0ODQsImV4cCI6MjA5NTk2NzQ4NH0.pRMvzSTgZw3jelF-mgJSaUQuBS2aBUVyIMQwKI-mAGs";
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    // Persistir sesión en localStorage para que sobreviva al cerrar la PWA
+    persistSession: true,
+    storageKey: "plan90_auth",
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+});
 
 export async function loadStateFromDB(userId) {
   try {
