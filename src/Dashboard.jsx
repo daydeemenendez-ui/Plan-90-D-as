@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { loadStateFromDB, saveStateToDB, supabase } from "./supabase";
+import { useAuth } from "./AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ─────────────────────────────────────────
@@ -197,6 +199,15 @@ function loadSavedState() {
   } catch {
     return null;
   }
+}
+
+// Migra datos de localStorage a Supabase si existen y aún no se han migrado
+async function migrateLocalStorage() {
+  const local = loadSavedState();
+  if (!local) return null;
+  await saveStateToDB(local);
+  localStorage.removeItem(STORAGE_KEY);
+  return local;
 }
 
 function mergeState(initial, saved) {
@@ -423,7 +434,9 @@ function ProgressBar({ value, max, color = "amber", height = "h-2" }) {
 // ─────────────────────────────────────────
 
 export default function Dashboard90Dias() {
+  const { user } = useAuth();
   const [state, setState] = useState(() => mergeState(INITIAL_STATE, loadSavedState()));
+  const isDBLoaded = useRef(false);
   const [activeTab, setActiveTab] = useState("today");
   const [salesInput, setSalesInput] = useState("");
   const [bookPage, setBookPage] = useState(["", "", ""]);
@@ -494,10 +507,34 @@ export default function Dashboard90Dias() {
   const [noteInput, setNoteInput] = useState("");
   const [noteToDelete, setNoteToDelete] = useState(null);
 
-  // ── Auto-save en localStorage
+  // ── Cargar estado desde Supabase al montar (con migración de localStorage)
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+    if (!user) return;
+    async function init() {
+      let dbState = await loadStateFromDB(user.id);
+      if (!dbState) {
+        dbState = await migrateLocalStorage();
+        if (dbState) await saveStateToDB(user.id, dbState);
+      }
+      if (dbState) {
+        setState(mergeState(INITIAL_STATE, dbState));
+        const price = dbState.pdfPrice ?? 20;
+        setPdfPrice(price);
+        setPdfPriceInput(String(price));
+      }
+      isDBLoaded.current = true;
+    }
+    init();
+  }, [user]);
+
+  // ── Auto-save en Supabase (debounced 1s)
+  useEffect(() => {
+    if (!isDBLoaded.current || !user) return;
+    const timer = setTimeout(() => {
+      saveStateToDB(user.id, state);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [state, user]);
 
   // ── Rotar frases motivadoras cada 8 s
   useEffect(() => {
@@ -1466,8 +1503,17 @@ export default function Dashboard90Dias() {
               )}
             </div>
 
-            {/* Derecha: Día y Sem */}
+            {/* Derecha: Día, Sem y cerrar sesión */}
             <div className="flex items-center gap-3 sm:gap-6 flex-shrink-0">
+              <button
+                onClick={() => supabase.auth.signOut()}
+                title="Cerrar sesión"
+                className="text-zinc-600 hover:text-rose-400 transition-colors p-1.5 rounded-lg hover:bg-rose-500/10"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+              </button>
               <div className="text-right">
                 <div className="text-[10px] sm:text-xs text-zinc-500 uppercase tracking-widest font-bold">Día</div>
                 <div className="text-xl sm:text-2xl font-black text-amber-400 leading-none">{state.currentDay}</div>
