@@ -437,7 +437,7 @@ function ProgressBar({ value, max, color = "amber", height = "h-2" }) {
 // COMPONENTE PRINCIPAL
 // ─────────────────────────────────────────
 
-export default function Dashboard90Dias() {
+export default function Dashboard90Dias({ onResetTutorial }) {
   const { user } = useAuth();
   const [state, setState] = useState(() => mergeState(INITIAL_STATE, loadSavedState()));
   const isDBLoaded = useRef(false);
@@ -1509,6 +1509,17 @@ export default function Dashboard90Dias() {
 
             {/* Derecha: Día, Sem y cerrar sesión */}
             <div className="flex items-center gap-3 sm:gap-6 flex-shrink-0">
+              {onResetTutorial && (
+                <button
+                  onClick={onResetTutorial}
+                  title="Ver tutorial"
+                  className="text-zinc-600 hover:text-amber-400 transition-colors p-1.5 rounded-lg hover:bg-amber-500/10"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                  </svg>
+                </button>
+              )}
               <button
                 onClick={() => supabase.auth.signOut()}
                 title="Cerrar sesión"

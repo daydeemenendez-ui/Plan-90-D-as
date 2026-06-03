@@ -1,9 +1,11 @@
 import { AuthProvider, useAuth } from "./AuthContext";
 import Dashboard90Dias from "./Dashboard.jsx";
 import Login from "./Login.jsx";
+import Tutorial, { useTutorial } from "./Tutorial.jsx";
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const { show: showTutorial, setShow: setShowTutorial, reset: resetTutorial } = useTutorial();
 
   if (loading) {
     return (
@@ -16,7 +18,14 @@ function AppContent() {
     );
   }
 
-  return user ? <Dashboard90Dias /> : <Login />;
+  if (!user) return <Login />;
+
+  return (
+    <>
+      <Dashboard90Dias onResetTutorial={resetTutorial} />
+      {showTutorial && <Tutorial onDone={() => setShowTutorial(false)} />}
+    </>
+  );
 }
 
 export default function App() {
