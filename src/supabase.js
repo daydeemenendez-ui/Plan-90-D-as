@@ -6,11 +6,11 @@ const SUPABASE_ANON_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    // Persistir sesión en localStorage para que sobreviva al cerrar la PWA
     persistSession: true,
     storageKey: "plan90_auth",
     autoRefreshToken: true,
     detectSessionInUrl: true,
+    storage: window.localStorage,
   },
 });
 
