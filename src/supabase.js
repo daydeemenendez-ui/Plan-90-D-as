@@ -10,7 +10,6 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     storageKey: "plan90_auth",
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    storage: window.localStorage,
   },
 });
 
