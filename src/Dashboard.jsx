@@ -172,29 +172,6 @@ const MOTIVATIONAL_QUOTES = [
 // HELPERS
 // ─────────────────────────────────────────
 
-// XOR cipher para credenciales BM en localStorage
-function xorCipher(str, key = "plan90_bm_key_v1") {
-  return str.split("").map((c, i) =>
-    String.fromCharCode(c.charCodeAt(0) ^ key.charCodeAt(i % key.length))
-  ).join("");
-}
-function saveBmCreds(accountId, token) {
-  try {
-    localStorage.setItem("bm_aid", btoa(unescape(encodeURIComponent(xorCipher(accountId)))));
-    localStorage.setItem("bm_tok", btoa(unescape(encodeURIComponent(xorCipher(token)))));
-  } catch (_) {}
-}
-function loadBmCreds() {
-  try {
-    const aid = localStorage.getItem("bm_aid");
-    const tok = localStorage.getItem("bm_tok");
-    return {
-      accountId: aid ? xorCipher(decodeURIComponent(escape(atob(aid)))) : "",
-      token:     tok ? xorCipher(decodeURIComponent(escape(atob(tok)))) : "",
-    };
-  } catch (_) { return { accountId: "", token: "" }; }
-}
-
 // Devuelve el número de PDFs cuyo resultado (pdfs * price) se acerca más al ingreso objetivo.
 // Compara floor y ceil y elige el más cercano; en empate elige el menor.
 function closestPdfs(income, price) {
@@ -550,18 +527,6 @@ export default function Dashboard90Dias({ onResetTutorial }) {
   // Notas
   const [noteInput, setNoteInput] = useState("");
   const [noteToDelete, setNoteToDelete] = useState(null);
-  // ── Business Manager state
-  const [bmAccountIdInput, setBmAccountIdInput] = useState("");
-  const [bmTokenInput, setBmTokenInput] = useState("");
-  const [bmTokenVisible, setBmTokenVisible] = useState(false);
-  const [bmPeriod, setBmPeriod] = useState("last_7d");
-  const [bmStatus, setBmStatus] = useState("disconnected");
-  const [bmLastSync, setBmLastSync] = useState(null);
-  const [bmAccountName, setBmAccountName] = useState("");
-  const [bmSyncing, setBmSyncing] = useState(false);
-  const [bmRealtimeData, setBmRealtimeData] = useState(null);
-  const [bmCredsExist, setBmCredsExist] = useState(false);
-
   // ── Cargar estado desde Supabase al montar (con migración de localStorage)
   useEffect(() => {
     if (!user) return;
@@ -598,60 +563,6 @@ export default function Dashboard90Dias({ onResetTutorial }) {
     }, 8000);
     return () => clearInterval(id);
   }, []);
-
-  // ── Cargar credenciales BM guardadas
-  useEffect(() => {
-    const creds = loadBmCreds();
-    if (creds.accountId) {
-      setBmAccountIdInput(creds.accountId);
-      setBmCredsExist(true);
-    }
-    if (creds.token) setBmTokenInput(creds.token);
-    const lastSync = localStorage.getItem("bm_last_sync");
-    if (lastSync) setBmLastSync(lastSync);
-    const accName = localStorage.getItem("bm_account_name");
-    if (accName) setBmAccountName(accName);
-    const status = localStorage.getItem("bm_status");
-    if (status) setBmStatus(status);
-  }, []);
-
-  // ── Sincronizar con Meta Business Manager
-  async function syncWithBM(accountIdOverride, tokenOverride, periodOverride) {
-    const accountId = (accountIdOverride ?? bmAccountIdInput).trim().replace(/^act_/, "");
-    const token = tokenOverride ?? bmTokenInput;
-    const period = periodOverride ?? bmPeriod;
-    if (!accountId) { showNotification("Ingresa el Ad Account ID primero", "error"); return; }
-    setBmSyncing(true);
-    try {
-      const params = new URLSearchParams({ adAccountId: accountId, datePreset: period });
-      const res = await fetch(`/api/meta?${params}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? `Error ${res.status}`);
-      setBmRealtimeData(data);
-      setBmStatus("connected");
-      const now = new Date().toISOString();
-      setBmLastSync(now);
-      if (data.accountName) { setBmAccountName(data.accountName); localStorage.setItem("bm_account_name", data.accountName); }
-      localStorage.setItem("bm_last_sync", now);
-      localStorage.setItem("bm_status", "connected");
-      const label = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "2-digit" });
-      setState((s) => ({
-        ...s,
-        campaigns: [
-          { id: Date.now(), name: `Sync BM — ${label}`, spend: data.spend, revenue: data.revenue,
-            purchases: data.purchases, roas: data.roas, cpa: data.cpa, date: data.date },
-          ...(s.campaigns ?? []).slice(0, 19),
-        ],
-      }));
-      showNotification("✅ Datos sincronizados con Meta BM", "success");
-    } catch (e) {
-      setBmStatus("error");
-      localStorage.setItem("bm_status", "error");
-      showNotification(`Error BM: ${e.message}`, "error");
-    } finally {
-      setBmSyncing(false);
-    }
-  }
 
   // ── Valores derivados
   const safeXP = isNaN(state.xp) ? 0 : (state.xp || 0);
@@ -1655,25 +1566,6 @@ export default function Dashboard90Dias({ onResetTutorial }) {
 
             {/* Derecha: Día, Sem y cerrar sesión */}
             <div className="flex items-center gap-3 sm:gap-6 flex-shrink-0">
-              {bmCredsExist && (
-                <button
-                  onClick={() => syncWithBM()}
-                  disabled={bmSyncing}
-                  title="Sincronizar Meta BM"
-                  className={`text-xs font-bold px-2.5 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 ${
-                    bmSyncing
-                      ? "border-blue-500/30 text-blue-400/50 cursor-wait"
-                      : "border-blue-500/40 text-blue-400 hover:bg-blue-500/10 active:scale-95"
-                  }`}
-                >
-                  {bmSyncing ? (
-                    <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                  ) : (
-                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
-                  )}
-                  <span className="hidden sm:inline">BM</span>
-                </button>
-              )}
               {onResetTutorial && (
                 <button
                   onClick={onResetTutorial}
@@ -2056,7 +1948,6 @@ export default function Dashboard90Dias({ onResetTutorial }) {
               { id: "cuerpo",  label: "🏋️ Cuerpo" },
               { id: "logros",  label: "🏆 Logros" },
               { id: "resumen", label: "📝 Notas" },
-              { id: "meta",   label: "📊 Meta BM" },
             ].map((tab) => (
               <motion.button
                 key={tab.id}
@@ -3848,239 +3739,6 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 </div>
               )}
             </div>
-          </motion.div>
-        )}
-
-        {/* ══════════════════════════════════════
-            TAB: META BM
-        ══════════════════════════════════════ */}
-        {activeTab === "meta" && (
-          <motion.div
-            key="meta"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="space-y-4"
-          >
-            {/* ── Estado de conexión */}
-            <div
-              className="rounded-2xl border p-4"
-              style={{ background: "#111827", borderColor: "rgba(255,255,255,0.07)" }}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-black text-zinc-400 uppercase tracking-widest">Estado de conexión</span>
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                  bmStatus === "connected"
-                    ? "bg-teal-500/20 text-teal-400"
-                    : bmStatus === "error"
-                    ? "bg-rose-500/20 text-rose-400"
-                    : "bg-zinc-800 text-zinc-500"
-                }`}>
-                  {bmStatus === "connected" ? "✓ Conectado" : bmStatus === "error" ? "✗ Error" : "Sin conectar"}
-                </span>
-              </div>
-              {bmAccountName && (
-                <div className="text-xs text-zinc-400 mt-1">Cuenta: <span className="text-white font-bold">{bmAccountName}</span></div>
-              )}
-              {bmLastSync && (
-                <div className="text-xs text-zinc-600 mt-0.5">
-                  Última sync: {new Date(bmLastSync).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                </div>
-              )}
-            </div>
-
-            {/* ── Formulario de configuración */}
-            <div
-              className="rounded-2xl border p-4 space-y-3"
-              style={{ background: "#111827", borderColor: "rgba(255,255,255,0.07)" }}
-            >
-              <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">⚙️ Configuración</h3>
-
-              {/* Ad Account ID */}
-              <div>
-                <label className="text-xs font-bold text-zinc-300 block mb-1">Ad Account ID</label>
-                <input
-                  type="text"
-                  value={bmAccountIdInput}
-                  onChange={(e) => setBmAccountIdInput(e.target.value)}
-                  placeholder="act_XXXXXXXXXX"
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500/60 transition-colors"
-                />
-                <p className="text-[10px] text-zinc-600 mt-1">
-                  Encuéntralo en Business Manager → Configuración → Cuentas Publicitarias
-                </p>
-              </div>
-
-              {/* Access Token */}
-              <div>
-                <label className="text-xs font-bold text-zinc-300 block mb-1">Access Token</label>
-                <div className="relative">
-                  <input
-                    type={bmTokenVisible ? "text" : "password"}
-                    value={bmTokenInput}
-                    onChange={(e) => setBmTokenInput(e.target.value)}
-                    placeholder="EAAxxxxx..."
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 pr-10 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500/60 transition-colors"
-                  />
-                  <button
-                    onClick={() => setBmTokenVisible((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
-                  >
-                    {bmTokenVisible ? (
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                    ) : (
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    )}
-                  </button>
-                </div>
-                <p className="text-[10px] text-zinc-600 mt-1">Marketing API token con permisos ads_read</p>
-              </div>
-
-              {/* Período */}
-              <div>
-                <label className="text-xs font-bold text-zinc-300 block mb-1">Período</label>
-                <select
-                  value={bmPeriod}
-                  onChange={(e) => setBmPeriod(e.target.value)}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60 transition-colors appearance-none"
-                >
-                  <option value="today">Hoy</option>
-                  <option value="last_7d">Últimos 7 días</option>
-                  <option value="last_30d">Últimos 30 días</option>
-                  <option value="this_month">Este mes</option>
-                  <option value="last_month">Mes pasado</option>
-                </select>
-              </div>
-
-              {/* Botones */}
-              <div className="flex gap-2 pt-1">
-                <motion.button
-                  onClick={() => syncWithBM(bmAccountIdInput, bmTokenInput, bmPeriod)}
-                  disabled={bmSyncing}
-                  whileTap={{ scale: 0.97 }}
-                  className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-black transition-colors disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-2"
-                >
-                  {bmSyncing ? (
-                    <>
-                      <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                      Sincronizando...
-                    </>
-                  ) : "🔄 Conectar y sincronizar"}
-                </motion.button>
-                <motion.button
-                  onClick={() => {
-                    if (!bmAccountIdInput.trim()) { showNotification("Ingresa el Ad Account ID primero", "error"); return; }
-                    saveBmCreds(bmAccountIdInput.trim(), bmTokenInput);
-                    setBmCredsExist(true);
-                    showNotification("🔒 Credenciales guardadas cifradas", "success");
-                  }}
-                  whileTap={{ scale: 0.97 }}
-                  className="px-4 py-2.5 rounded-xl border border-zinc-700 text-zinc-300 text-sm font-bold hover:border-zinc-500 hover:text-white transition-colors"
-                >
-                  💾 Guardar
-                </motion.button>
-              </div>
-
-              {/* Botón modo test */}
-              <button
-                onClick={async () => {
-                  setBmSyncing(true);
-                  try {
-                    const res = await fetch("/api/meta?test=true");
-                    const data = await res.json();
-                    setBmRealtimeData(data);
-                    setBmStatus("connected");
-                    const now = new Date().toISOString();
-                    setBmLastSync(now);
-                    setBmAccountName(data.accountName);
-                    localStorage.setItem("bm_last_sync", now);
-                    localStorage.setItem("bm_status", "connected");
-                    localStorage.setItem("bm_account_name", data.accountName);
-                    showNotification("✅ Modo test — datos ficticios cargados", "success");
-                  } catch (e) {
-                    showNotification("Error en modo test", "error");
-                  } finally {
-                    setBmSyncing(false);
-                  }
-                }}
-                className="w-full py-2 rounded-xl border border-zinc-800 text-zinc-600 text-xs font-bold hover:border-zinc-600 hover:text-zinc-400 transition-colors"
-              >
-                🧪 Probar sin token real (datos de prueba)
-              </button>
-            </div>
-
-            {/* ── Datos en tiempo real */}
-            {bmRealtimeData && (
-              <div
-                className="rounded-2xl border p-4"
-                style={{ background: "#111827", borderColor: "rgba(255,255,255,0.07)" }}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest">📡 Datos en tiempo real</h3>
-                  <motion.button
-                    onClick={() => syncWithBM()}
-                    disabled={bmSyncing}
-                    whileTap={{ scale: 0.95 }}
-                    className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1 disabled:opacity-50"
-                  >
-                    <svg className={`w-3 h-3 ${bmSyncing ? "animate-spin" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
-                    Sincronizar ahora
-                  </motion.button>
-                </div>
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  {[
-                    { label: "Gasto", value: `$${bmRealtimeData.spend?.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, color: "text-rose-400" },
-                    { label: "Revenue", value: `$${bmRealtimeData.revenue?.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, color: "text-teal-400" },
-                    { label: "ROAS", value: `${bmRealtimeData.roas}x`, color: "text-amber-400" },
-                    { label: "Compras", value: bmRealtimeData.purchases, color: "text-violet-400" },
-                  ].map((m) => (
-                    <div key={m.label} className="rounded-xl bg-zinc-900/60 border border-zinc-800/80 p-3 text-center">
-                      <div className={`text-lg font-black ${m.color}`}>{m.value}</div>
-                      <div className="text-[10px] text-zinc-500 font-medium mt-0.5">{m.label}</div>
-                    </div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  {[
-                    { label: "Clicks", value: bmRealtimeData.clicks?.toLocaleString() },
-                    { label: "CTR", value: `${bmRealtimeData.ctr}%` },
-                    { label: "CPM", value: `$${bmRealtimeData.cpm}` },
-                  ].map((m) => (
-                    <div key={m.label} className="text-center">
-                      <div className="text-sm font-black text-zinc-200">{m.value}</div>
-                      <div className="text-[10px] text-zinc-600">{m.label}</div>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-[9px] text-zinc-700 mt-3 text-center">
-                  Datos de Meta Marketing API v19.0 · {bmRealtimeData.date}
-                </p>
-              </div>
-            )}
-
-            {/* ── Historial de syncs */}
-            {state.campaigns && state.campaigns.length > 0 && (
-              <div
-                className="rounded-2xl border p-4"
-                style={{ background: "#111827", borderColor: "rgba(255,255,255,0.07)" }}
-              >
-                <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">📋 Historial de sincronizaciones</h3>
-                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                  {state.campaigns.map((c) => (
-                    <div key={c.id} className="rounded-xl bg-zinc-900/60 border border-zinc-800/80 p-3 flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-zinc-200 truncate">{c.name}</div>
-                        <div className="text-[10px] text-zinc-600">{c.date}</div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <div className="text-xs font-black text-teal-400">${c.revenue?.toLocaleString("es-ES", { maximumFractionDigits: 0 })}</div>
-                        <div className="text-[10px] text-zinc-500">ROAS {c.roas}x</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </motion.div>
         )}
 
