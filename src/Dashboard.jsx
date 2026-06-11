@@ -85,6 +85,8 @@ const INITIAL_STATE = {
   weekUnlockedNotified: false,
   notes: [],
   campaigns: [],
+  lastHabitResetDate: null,  // "YYYY-MM-DD" del último reset diario
+  lastWeekResetNum: 0,       // número de semana del último reset semanal
 };
 
 const XP_PER_ACTION = {
@@ -271,6 +273,8 @@ function mergeState(initial, saved) {
     weekUnlockedNotified: saved.weekUnlockedNotified ?? false,
     notes: saved.notes ?? [],
     campaigns: saved.campaigns ?? [],
+    lastHabitResetDate: saved.lastHabitResetDate ?? null,
+    lastWeekResetNum: saved.lastWeekResetNum ?? 0,
     userName: saved.userName || "",
     userSubtitle: saved.userSubtitle || "",
     monthlyTargets: saved.monthlyTargets && saved.monthlyTargets.length === 3
@@ -456,6 +460,17 @@ function ProgressBar({ value, max, color = "amber", height = "h-2" }) {
       />
     </div>
   );
+}
+
+function getTodayDateStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function getWeekNumFromPlanStart(planStartDate) {
+  if (!planStartDate) return 1;
+  const elapsed = Math.floor((Date.now() - planStartDate) / (24 * 60 * 60 * 1000));
+  return Math.min(12, Math.max(1, Math.ceil((elapsed + 1) / 7)));
 }
 
 // ─────────────────────────────────────────
@@ -688,6 +703,42 @@ export default function Dashboard90Dias({ onResetTutorial }) {
           return { ...s, weekUnlockedNotified: true };
         }
         return s;
+      });
+    };
+    check();
+    const id = setInterval(check, 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  // ── Reset automático de hábitos (diario) y podcasts (semanal) sin tocar XP ni monedas
+  useEffect(() => {
+    const check = () => {
+      setState((s) => {
+        if (!s.planStarted) return s;
+        const today = getTodayDateStr();
+        const weekNum = getWeekNumFromPlanStart(s.planStartDate);
+        let next = s;
+
+        // Reset diario: si cambió el día, desmarcar todos los hábitos
+        if (s.lastHabitResetDate !== today) {
+          next = {
+            ...next,
+            todayChecks: Object.fromEntries(Object.keys(s.todayChecks).map((k) => [k, false])),
+            customHabits: s.customHabits.map((h) => ({ ...h, checked: false })),
+            lastHabitResetDate: today,
+          };
+        }
+
+        // Reset semanal: si cambió la semana, reiniciar contador de podcasts
+        if (s.lastWeekResetNum !== weekNum) {
+          next = {
+            ...next,
+            podcastsThisWeek: 0,
+            lastWeekResetNum: weekNum,
+          };
+        }
+
+        return next === s ? s : next;
       });
     };
     check();
