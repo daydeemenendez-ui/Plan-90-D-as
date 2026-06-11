@@ -630,12 +630,13 @@ export default function Dashboard90Dias({ onResetTutorial }) {
         const weekNum = getWeekNumFromPlanStart(s.planStartDate);
         let next = s;
 
-        // Reset diario: si cambió el día, desmarcar todos los hábitos
+        // Reset diario: si cambió el día, desmarcar hábitos y tareas clave
         if (s.lastHabitResetDate !== today) {
           next = {
             ...next,
             todayChecks: Object.fromEntries(Object.keys(s.todayChecks).map((k) => [k, false])),
             customHabits: s.customHabits.map((h) => ({ ...h, checked: false })),
+            keyTasks: s.keyTasks.map((t) => ({ ...t, done: false })),
             lastHabitResetDate: today,
           };
         }
