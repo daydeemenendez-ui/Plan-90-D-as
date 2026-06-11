@@ -688,10 +688,17 @@ export default function Dashboard90Dias({ onResetTutorial }) {
   const toggleHabit = (id) => {
     setState((s) => {
       const wasChecked = s.todayChecks[id];
-      const xpChange = wasChecked ? -XP_PER_ACTION[id] : XP_PER_ACTION[id];
-      const newXP = Math.max(0, s.xp + xpChange);
+      const xpPerAction = XP_PER_ACTION[id] ?? 10; // hábitos custom valen 10 XP
+      const safeCurrentXP = isNaN(s.xp) ? 0 : (s.xp || 0);
+      const xpChange = wasChecked ? -xpPerAction : xpPerAction;
+      const newXP = Math.max(0, safeCurrentXP + xpChange);
       const newChecks = { ...s.todayChecks, [id]: !wasChecked };
-      const allDone = Object.values(newChecks).every(Boolean);
+
+      // allDone: todos los hábitos visibles (fixed no ocultos + custom) están marcados
+      const hiddenIds = new Set(s.hiddenHabits || []);
+      const allFixedChecked = HABITS.filter((h) => !hiddenIds.has(h.id)).every((h) => newChecks[h.id]);
+      const allCustomChecked = (s.customHabits || []).every((h) => newChecks[h.id]);
+      const allDone = allFixedChecked && allCustomChecked;
 
       // Bonus si completa todo el día
       const bonusXP = !wasChecked && allDone ? 100 : 0;
@@ -702,18 +709,19 @@ export default function Dashboard90Dias({ onResetTutorial }) {
       if (id === "training") trainingsThisWeek += wasChecked ? -1 : 1;
       if (id === "walk") walksThisWeek += wasChecked ? -1 : 1;
 
+      const totalXP = newXP + bonusXP;
       const next = {
         ...s,
-        xp: newXP + bonusXP,
-        level: getLevelFromXP(newXP + bonusXP),
+        xp: totalXP,
+        level: getLevelFromXP(totalXP),
         todayChecks: newChecks,
-        coins: !wasChecked ? s.coins + 5 : Math.max(0, s.coins - 5),
+        coins: !wasChecked ? (isNaN(s.coins) ? 5 : s.coins + 5) : Math.max(0, (isNaN(s.coins) ? 0 : s.coins) - 5),
         trainingsThisWeek: Math.max(0, trainingsThisWeek),
         walksThisWeek: Math.max(0, walksThisWeek),
       };
 
       if (!wasChecked) {
-        setTimeout(() => showNotification(`+${XP_PER_ACTION[id]} XP +5 🪙 ganados! 🔥`), 0);
+        setTimeout(() => showNotification(`+${xpPerAction} XP +5 🪙 ganados! 🔥`), 0);
         if (allDone) setTimeout(() => showNotification("⚡ DÍA PERFECTO! +100 XP BONUS"), 1000);
       }
 
@@ -737,8 +745,8 @@ export default function Dashboard90Dias({ onResetTutorial }) {
         ...s,
         weeklySales: newWeeklySales,
         monthlyRevenue: newMonthlyRevenue,
-        xp: s.xp + n * 5,
-        coins: s.coins + n * 10,
+        xp: (isNaN(s.xp) ? 0 : s.xp) + n * 5,
+        coins: (isNaN(s.coins) ? 0 : s.coins) + n * 10,
       };
       setTimeout(() => showNotification(`+${n} ventas! 💰 +$${revenue} registrados`), 0);
       return applyAchievements(next);
@@ -756,7 +764,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
         pagesRead: Math.min(pages, newBooks[idx].totalPages),
         done: pages >= newBooks[idx].totalPages,
       };
-      const next = { ...s, books: newBooks, xp: s.xp + 10 };
+      const next = { ...s, books: newBooks, xp: (isNaN(s.xp) ? 0 : s.xp) + 10 };
       if (newBooks[idx].done) setTimeout(() => showNotification("📚 ¡Libro terminado! +10 XP"), 0);
       return applyAchievements(next);
     });
@@ -794,8 +802,8 @@ export default function Dashboard90Dias({ onResetTutorial }) {
         podcastsThisWeek: 0,
         walksThisWeek:   0,
         streak:          newStreak,
-        xp:              s.xp + 50 + bonusXP,
-        coins:           s.coins + 20 + bonusCoins,
+        xp:              (isNaN(s.xp) ? 0 : s.xp) + 50 + bonusXP,
+        coins:           (isNaN(s.coins) ? 0 : s.coins) + 20 + bonusCoins,
         keyTasks:        s.keyTasks.map((t) => ({ ...t, done: false })),
         weekStartDate:   isLastWeek ? s.weekStartDate : newWeekStartMidnight,
         weekUnlockedNotified: false,
@@ -1873,8 +1881,8 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                     return {
                       ...s,
                       keyTasks: newTasks,
-                      xp: Math.max(0, s.xp + rewards.xp),
-                      coins: Math.max(0, s.coins + rewards.coins),
+                      xp: Math.max(0, (isNaN(s.xp) ? 0 : s.xp) + rewards.xp),
+                      coins: Math.max(0, (isNaN(s.coins) ? 0 : s.coins) + rewards.coins),
                     };
                   })}
                   className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
@@ -3078,8 +3086,8 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                         return {
                           ...s,
                           podcastsThisWeek: newCount,
-                          xp: gaining ? s.xp + 5 : Math.max(0, s.xp - 5),
-                          coins: gaining ? s.coins + 3 : Math.max(0, s.coins - 3),
+                          xp: gaining ? (isNaN(s.xp) ? 5 : s.xp + 5) : Math.max(0, isNaN(s.xp) ? 0 : s.xp - 5),
+                          coins: gaining ? (isNaN(s.coins) ? 3 : s.coins + 3) : Math.max(0, isNaN(s.coins) ? 0 : s.coins - 3),
                         };
                       })
                     }
