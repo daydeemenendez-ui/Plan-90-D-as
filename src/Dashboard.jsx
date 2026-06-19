@@ -582,7 +582,12 @@ export default function Dashboard90Dias({ onResetTutorial }) {
 
   const hiddenSet = new Set(state.hiddenHabits || []);
   const totalChecked = Object.entries(state.todayChecks).filter(([id, v]) => v && !hiddenSet.has(id)).length;
-  const totalHabits = Object.keys(state.todayChecks).filter((id) => !hiddenSet.has(id)).length + state.customHabits.filter(isHabitVisibleToday).length;
+  const visibleFixedCount = HABITS.filter((h) => {
+    if (hiddenSet.has(h.id)) return false;
+    const ov = (state.habitOverrides || {})[h.id];
+    return isHabitVisibleToday(ov ? { ...h, ...ov } : h);
+  }).length;
+  const totalHabits = visibleFixedCount + state.customHabits.filter(isHabitVisibleToday).length;
   const currentWeekTarget = WEEK_TARGETS[state.currentWeek - 1] || WEEK_TARGETS[0];
   const totalRevenue = state.monthlyRevenue.reduce((a, b) => a + b, 0);
   const totalSales = state.weeklySales.reduce((a, b) => a + b, 0);
@@ -2035,7 +2040,11 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 </div>
               </div>
               <div className="space-y-2">
-                {[...menteHabits.filter((h) => !(state.hiddenHabits || []).includes(h.id)), ...state.customHabits.filter((h) => h.category === "mente" && isHabitVisibleToday(h))].map((h) => {
+                {[...menteHabits.filter((h) => {
+                  if ((state.hiddenHabits || []).includes(h.id)) return false;
+                  const ov = (state.habitOverrides || {})[h.id];
+                  return isHabitVisibleToday(ov ? { ...h, ...ov } : h);
+                }), ...state.customHabits.filter((h) => h.category === "mente" && isHabitVisibleToday(h))].map((h) => {
                   const ov = (state.habitOverrides || {})[h.id];
                   const displayH = ov ? { ...h, ...ov } : h;
                   return (
@@ -2070,7 +2079,11 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 </div>
               </div>
               <div className="space-y-2">
-                {[...cuerpoHabits.filter((h) => !(state.hiddenHabits || []).includes(h.id)), ...state.customHabits.filter((h) => h.category === "cuerpo" && isHabitVisibleToday(h))].map((h) => {
+                {[...cuerpoHabits.filter((h) => {
+                  if ((state.hiddenHabits || []).includes(h.id)) return false;
+                  const ov = (state.habitOverrides || {})[h.id];
+                  return isHabitVisibleToday(ov ? { ...h, ...ov } : h);
+                }), ...state.customHabits.filter((h) => h.category === "cuerpo" && isHabitVisibleToday(h))].map((h) => {
                   const ov = (state.habitOverrides || {})[h.id];
                   const displayH = ov ? { ...h, ...ov } : h;
                   return (
@@ -2105,7 +2118,11 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 </div>
               </div>
               <div className="space-y-2">
-                {[...negocioHabits.filter((h) => !(state.hiddenHabits || []).includes(h.id)), ...state.customHabits.filter((h) => h.category === "negocio" && isHabitVisibleToday(h))].map((h) => {
+                {[...negocioHabits.filter((h) => {
+                  if ((state.hiddenHabits || []).includes(h.id)) return false;
+                  const ov = (state.habitOverrides || {})[h.id];
+                  return isHabitVisibleToday(ov ? { ...h, ...ov } : h);
+                }), ...state.customHabits.filter((h) => h.category === "negocio" && isHabitVisibleToday(h))].map((h) => {
                   const ov = (state.habitOverrides || {})[h.id];
                   const displayH = ov ? { ...h, ...ov } : h;
                   return (
