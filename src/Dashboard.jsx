@@ -568,9 +568,21 @@ export default function Dashboard90Dias({ onResetTutorial }) {
   const safeXP = isNaN(state.xp) ? 0 : (state.xp || 0);
   const level = getLevelFromXP(safeXP);
   const xpProgress = getXPProgress(safeXP, level);
+
+  // Filtro de visibilidad por frecuencia del hábito
+  const DAY_LETTERS = ["D","L","M","X","J","V","S"];
+  const todayWeekday = DAY_LETTERS[new Date().getDay()];
+  const todayDateStr = new Date().toISOString().split("T")[0];
+  const isHabitVisibleToday = (h) => {
+    if (!h.repeat || h.repeat === "daily") return true;
+    if (h.repeat === "specific") return (h.days || []).includes(todayWeekday);
+    if (h.repeat === "once") return h.date === todayDateStr;
+    return true;
+  };
+
   const hiddenSet = new Set(state.hiddenHabits || []);
   const totalChecked = Object.entries(state.todayChecks).filter(([id, v]) => v && !hiddenSet.has(id)).length;
-  const totalHabits = Object.keys(state.todayChecks).filter((id) => !hiddenSet.has(id)).length + state.customHabits.length;
+  const totalHabits = Object.keys(state.todayChecks).filter((id) => !hiddenSet.has(id)).length + state.customHabits.filter(isHabitVisibleToday).length;
   const currentWeekTarget = WEEK_TARGETS[state.currentWeek - 1] || WEEK_TARGETS[0];
   const totalRevenue = state.monthlyRevenue.reduce((a, b) => a + b, 0);
   const totalSales = state.weeklySales.reduce((a, b) => a + b, 0);
@@ -698,7 +710,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
       // allDone: todos los hábitos visibles (fixed no ocultos + custom) están marcados
       const hiddenIds = new Set(s.hiddenHabits || []);
       const allFixedChecked = HABITS.filter((h) => !hiddenIds.has(h.id)).every((h) => newChecks[h.id]);
-      const allCustomChecked = (s.customHabits || []).every((h) => newChecks[h.id]);
+      const allCustomChecked = (s.customHabits || []).filter(isHabitVisibleToday).every((h) => newChecks[h.id]);
       const allDone = allFixedChecked && allCustomChecked;
 
       // Bonus si completa todo el día
@@ -2023,7 +2035,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 </div>
               </div>
               <div className="space-y-2">
-                {[...menteHabits.filter((h) => !(state.hiddenHabits || []).includes(h.id)), ...state.customHabits.filter((h) => h.category === "mente")].map((h) => {
+                {[...menteHabits.filter((h) => !(state.hiddenHabits || []).includes(h.id)), ...state.customHabits.filter((h) => h.category === "mente" && isHabitVisibleToday(h))].map((h) => {
                   const ov = (state.habitOverrides || {})[h.id];
                   const displayH = ov ? { ...h, ...ov } : h;
                   return (
@@ -2058,7 +2070,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 </div>
               </div>
               <div className="space-y-2">
-                {[...cuerpoHabits.filter((h) => !(state.hiddenHabits || []).includes(h.id)), ...state.customHabits.filter((h) => h.category === "cuerpo")].map((h) => {
+                {[...cuerpoHabits.filter((h) => !(state.hiddenHabits || []).includes(h.id)), ...state.customHabits.filter((h) => h.category === "cuerpo" && isHabitVisibleToday(h))].map((h) => {
                   const ov = (state.habitOverrides || {})[h.id];
                   const displayH = ov ? { ...h, ...ov } : h;
                   return (
@@ -2093,7 +2105,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 </div>
               </div>
               <div className="space-y-2">
-                {[...negocioHabits.filter((h) => !(state.hiddenHabits || []).includes(h.id)), ...state.customHabits.filter((h) => h.category === "negocio")].map((h) => {
+                {[...negocioHabits.filter((h) => !(state.hiddenHabits || []).includes(h.id)), ...state.customHabits.filter((h) => h.category === "negocio" && isHabitVisibleToday(h))].map((h) => {
                   const ov = (state.habitOverrides || {})[h.id];
                   const displayH = ov ? { ...h, ...ov } : h;
                   return (
