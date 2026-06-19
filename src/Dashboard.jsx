@@ -1110,7 +1110,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                   <button
                     key={opt.id}
                     onClick={() => setHabitModalRepeat(opt.id)}
-                    className={`flex-1 min-w-[80px] py-2 px-2 rounded-2xl text-xs font-bold transition-all ${
+                    className={`flex-1 py-2 px-1 rounded-2xl text-xs font-bold transition-all text-center ${
                       habitModalRepeat === opt.id
                         ? "bg-amber-500 text-zinc-900"
                         : "bg-zinc-800 text-zinc-500 hover:text-zinc-300 border border-zinc-700"
@@ -1361,7 +1361,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                     <button
                       key={opt.id}
                       onClick={() => setEditHabitRepeat(opt.id)}
-                      className={`flex-1 min-w-[80px] py-2 px-2 rounded-2xl text-xs font-bold transition-all ${
+                      className={`flex-1 py-2 px-1 rounded-2xl text-xs font-bold transition-all text-center ${
                         editHabitRepeat === opt.id ? "bg-amber-500 text-zinc-900" : "bg-zinc-800 text-zinc-500 hover:text-zinc-300 border border-zinc-700"
                       }`}
                     >{opt.label}</button>
