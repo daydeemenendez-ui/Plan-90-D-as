@@ -3735,7 +3735,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                           <motion.button
                             onClick={() => setNoteToDelete(note.id)}
                             whileTap={{ scale: 0.85 }}
-                            className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-lg bg-zinc-800 hover:bg-rose-500/20 hover:text-rose-400 text-zinc-600 flex items-center justify-center text-xs"
+                            className="absolute top-3 right-3 opacity-40 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-lg bg-zinc-800 hover:bg-rose-500/20 hover:text-rose-400 text-zinc-500 flex items-center justify-center text-xs"
                           >
                             <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M3 4h10M6 4V2.5h4V4M5 4l.5 9h5L11 4"/>
