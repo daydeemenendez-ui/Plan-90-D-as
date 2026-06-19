@@ -71,6 +71,7 @@ const INITIAL_STATE = {
   customHabits: [],
   hiddenHabits: [],
   habitOverrides: {},
+  habitSchedules: {},
   rewards: [
     { id: "r1", label: "", redeemed: false },
     { id: "r2", label: "", redeemed: false },
@@ -237,6 +238,7 @@ function mergeState(initial, saved) {
     customHabits: saved.customHabits || [],
     hiddenHabits: saved.hiddenHabits || [],
     habitOverrides: saved.habitOverrides || {},
+    habitSchedules: saved.habitSchedules || {},
     rewards: saved.rewards && saved.rewards.length === 3
       ? saved.rewards
       : initial.rewards,
@@ -537,6 +539,22 @@ export default function Dashboard90Dias({ onResetTutorial }) {
         if (dbState) await saveStateToDB(user.id, dbState);
       }
       if (dbState) {
+        // Migrar habitOverrides → habitSchedules si aún no existe
+        if (dbState.habitOverrides && !dbState.habitSchedules) {
+          dbState.habitSchedules = {};
+          Object.entries(dbState.habitOverrides).forEach(([id, ov]) => {
+            if (ov.repeat) dbState.habitSchedules[id] = { repeat: ov.repeat, days: ov.days || [], date: ov.date || null };
+          });
+        }
+        // Migrar customHabits con repeat → habitSchedules
+        if (dbState.customHabits) {
+          dbState.habitSchedules = dbState.habitSchedules || {};
+          dbState.customHabits.forEach((h) => {
+            if (h.repeat && !dbState.habitSchedules[h.id]) {
+              dbState.habitSchedules[h.id] = { repeat: h.repeat, days: h.days || [], date: h.date || null };
+            }
+          });
+        }
         setState(mergeState(INITIAL_STATE, dbState));
         const price = dbState.pdfPrice ?? 20;
         setPdfPrice(price);
@@ -574,9 +592,10 @@ export default function Dashboard90Dias({ onResetTutorial }) {
   const todayWeekday = DAY_LETTERS[new Date().getDay()];
   const todayDateStr = new Date().toISOString().split("T")[0];
   const isHabitVisibleToday = (h) => {
-    if (!h.repeat || h.repeat === "daily") return true;
-    if (h.repeat === "specific") return (h.days || []).includes(todayWeekday);
-    if (h.repeat === "once") return h.date === todayDateStr;
+    const sched = (state.habitSchedules || {})[h.id] || h;
+    if (!sched.repeat || sched.repeat === "daily") return true;
+    if (sched.repeat === "specific") return (sched.days || []).includes(todayWeekday);
+    if (sched.repeat === "once") return sched.date === todayDateStr;
     return true;
   };
 
@@ -908,42 +927,37 @@ export default function Dashboard90Dias({ onResetTutorial }) {
 
   const confirmEditHabit = () => {
     if (!editHabitName.trim() || !editHabitModal) return;
+    const scheduleEntry = {
+      repeat: editHabitRepeat,
+      days: editHabitRepeat === "specific" ? editHabitDays : [],
+      date: editHabitRepeat === "once" ? editHabitDate : null,
+    };
     setState((s) => {
+      const newSchedules = {
+        ...(s.habitSchedules || {}),
+        [editHabitModal.id]: scheduleEntry,
+      };
       if (editHabitModal.isFixed) {
-        // Los fijos se guardan como "overrides" en customHabits con mismo id
-        const exists = s.customHabits.find((h) => h.id === editHabitModal.id + "_override");
-        const original = HABITS.find((h) => h.id === editHabitModal.id);
-        if (exists) {
-          return {
-            ...s,
-            customHabits: s.customHabits.map((h) =>
-              h.id === editHabitModal.id + "_override"
-                ? { ...h, label: editHabitName.trim(), icon: editHabitEmoji, time: editHabitTime || null, repeat: editHabitRepeat, days: editHabitRepeat === "specific" ? editHabitDays : [], date: editHabitRepeat === "once" ? editHabitDate : null }
-                : h
-            ),
-          };
-        }
-        // Guardamos el override en un campo separado del estado
         return {
           ...s,
+          habitSchedules: newSchedules,
           habitOverrides: {
             ...(s.habitOverrides || {}),
             [editHabitModal.id]: {
               label: editHabitName.trim(),
               icon: editHabitEmoji,
               time: editHabitTime || null,
-              repeat: editHabitRepeat,
-              days: editHabitRepeat === "specific" ? editHabitDays : [],
-              date: editHabitRepeat === "once" ? editHabitDate : null,
+              ...scheduleEntry,
             },
           },
         };
       } else {
         return {
           ...s,
+          habitSchedules: newSchedules,
           customHabits: s.customHabits.map((h) =>
             h.id === editHabitModal.id
-              ? { ...h, label: editHabitName.trim(), icon: editHabitEmoji, time: editHabitTime || null, repeat: editHabitRepeat, days: editHabitRepeat === "specific" ? editHabitDays : [], date: editHabitRepeat === "once" ? editHabitDate : null }
+              ? { ...h, label: editHabitName.trim(), icon: editHabitEmoji, time: editHabitTime || null, ...scheduleEntry }
               : h
           ),
         };
@@ -955,21 +969,26 @@ export default function Dashboard90Dias({ onResetTutorial }) {
 
   const confirmAddHabit = () => {
     if (!habitModalName.trim()) return;
+    const newId = `custom_${Date.now()}`;
+    const newSchedule = {
+      repeat: habitModalRepeat,
+      days: habitModalRepeat === "specific" ? habitModalDays : [],
+      date: habitModalRepeat === "once" ? habitModalDate : null,
+    };
     setState((s) => ({
       ...s,
+      habitSchedules: { ...(s.habitSchedules || {}), [newId]: newSchedule },
       customHabits: [
         ...s.customHabits,
         {
-          id: `custom_${Date.now()}`,
+          id: newId,
           icon: habitModalEmoji,
           label: habitModalName.trim(),
           category: habitModal,
           pts: 10,
           checked: false,
           time: habitModalTime || null,
-          repeat: habitModalRepeat,
-          days: habitModalRepeat === "specific" ? habitModalDays : [],
-          date: habitModalRepeat === "once" ? habitModalDate : null,
+          ...newSchedule,
         },
       ],
     }));
@@ -2040,11 +2059,8 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 </div>
               </div>
               <div className="space-y-2">
-                {[...menteHabits.filter((h) => {
-                  if ((state.hiddenHabits || []).includes(h.id)) return false;
-                  const ov = (state.habitOverrides || {})[h.id];
-                  return isHabitVisibleToday(ov ? { ...h, ...ov } : h);
-                }), ...state.customHabits.filter((h) => h.category === "mente" && isHabitVisibleToday(h))].map((h) => {
+                {[...menteHabits.filter((h) => !(state.hiddenHabits || []).includes(h.id) && isHabitVisibleToday(h)),
+                  ...state.customHabits.filter((h) => h.category === "mente" && isHabitVisibleToday(h))].map((h) => {
                   const ov = (state.habitOverrides || {})[h.id];
                   const displayH = ov ? { ...h, ...ov } : h;
                   return (
@@ -2079,11 +2095,8 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 </div>
               </div>
               <div className="space-y-2">
-                {[...cuerpoHabits.filter((h) => {
-                  if ((state.hiddenHabits || []).includes(h.id)) return false;
-                  const ov = (state.habitOverrides || {})[h.id];
-                  return isHabitVisibleToday(ov ? { ...h, ...ov } : h);
-                }), ...state.customHabits.filter((h) => h.category === "cuerpo" && isHabitVisibleToday(h))].map((h) => {
+                {[...cuerpoHabits.filter((h) => !(state.hiddenHabits || []).includes(h.id) && isHabitVisibleToday(h)),
+                  ...state.customHabits.filter((h) => h.category === "cuerpo" && isHabitVisibleToday(h))].map((h) => {
                   const ov = (state.habitOverrides || {})[h.id];
                   const displayH = ov ? { ...h, ...ov } : h;
                   return (
@@ -2118,11 +2131,8 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 </div>
               </div>
               <div className="space-y-2">
-                {[...negocioHabits.filter((h) => {
-                  if ((state.hiddenHabits || []).includes(h.id)) return false;
-                  const ov = (state.habitOverrides || {})[h.id];
-                  return isHabitVisibleToday(ov ? { ...h, ...ov } : h);
-                }), ...state.customHabits.filter((h) => h.category === "negocio" && isHabitVisibleToday(h))].map((h) => {
+                {[...negocioHabits.filter((h) => !(state.hiddenHabits || []).includes(h.id) && isHabitVisibleToday(h)),
+                  ...state.customHabits.filter((h) => h.category === "negocio" && isHabitVisibleToday(h))].map((h) => {
                   const ov = (state.habitOverrides || {})[h.id];
                   const displayH = ov ? { ...h, ...ov } : h;
                   return (
