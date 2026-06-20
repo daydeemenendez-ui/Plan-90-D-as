@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
 import { loadStateFromDB, saveStateToDB, supabase } from "./supabase";
 import { useAuth } from "./AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -209,6 +209,14 @@ function loadSavedState() {
   }
 }
 
+// Cache para evitar múltiples lecturas de localStorage en la misma sesión
+const _UNSEEN = Symbol();
+let _cachedInitState = _UNSEEN;
+function getCachedInitState() {
+  if (_cachedInitState === _UNSEEN) _cachedInitState = loadSavedState();
+  return _cachedInitState;
+}
+
 // Migra datos de localStorage a Supabase si existen y aún no se han migrado
 async function migrateLocalStorage() {
   const local = loadSavedState();
@@ -300,7 +308,7 @@ function checkNewAchievements(state) {
 // SUB-COMPONENTES
 // ─────────────────────────────────────────
 
-function StatCard({ icon, label, value, sub, color = "amber" }) {
+const StatCard = memo(function StatCard({ icon, label, value, sub, color = "amber" }) {
   const border = {
     amber:  "border-amber-500/25 bg-amber-500/5 hover:border-amber-500/40 hover:bg-amber-500/8",
     teal:   "border-teal-500/25 bg-teal-500/5 hover:border-teal-500/40 hover:bg-teal-500/8",
@@ -336,9 +344,10 @@ function StatCard({ icon, label, value, sub, color = "amber" }) {
       {sub && <div className="text-xs text-zinc-600 mt-0.5 truncate leading-tight">{sub}</div>}
     </motion.div>
   );
-}
+});
 
-function HabitRow({ id, icon, label, pts, checked, onToggle, onEdit }) {
+const HabitRow = memo(function HabitRow({ id, habit, pts, checked, onToggle, onEdit }) {
+  const { icon, label } = habit;
   const [coins, setCoins] = useState([]);
   const handleToggle = () => {
     if (!checked) {
@@ -424,9 +433,9 @@ function HabitRow({ id, icon, label, pts, checked, onToggle, onEdit }) {
       </motion.button>
     </motion.div>
   );
-}
+});
 
-function ProgressBar({ value, max, color = "amber", height = "h-2" }) {
+const ProgressBar = memo(function ProgressBar({ value, max, color = "amber", height = "h-2" }) {
   const pct = Math.min(100, max > 0 ? (value / max) * 100 : 0);
   return (
     <div className={`w-full bg-zinc-800/80 rounded-full ${height} overflow-hidden progress-premium`}
@@ -439,7 +448,7 @@ function ProgressBar({ value, max, color = "amber", height = "h-2" }) {
       />
     </div>
   );
-}
+});
 
 function getTodayDateStr() {
   const d = new Date();
@@ -458,7 +467,7 @@ function getWeekNumFromPlanStart(planStartDate) {
 
 export default function Dashboard90Dias({ onResetTutorial }) {
   const { user } = useAuth();
-  const [state, setState] = useState(() => mergeState(INITIAL_STATE, loadSavedState()));
+  const [state, setState] = useState(() => mergeState(INITIAL_STATE, getCachedInitState()));
   const isDBLoaded = useRef(false);
   const [activeTab, setActiveTab] = useState("today");
   const [salesInput, setSalesInput] = useState("");
@@ -513,14 +522,8 @@ export default function Dashboard90Dias({ onResetTutorial }) {
   const [editingMonthTarget, setEditingMonthTarget] = useState(false);
   const [monthTargetInput, setMonthTargetInput] = useState("");
   // Precio global por PDF (persiste en UI, afecta toda la calculadora)
-  const [pdfPrice, setPdfPrice] = useState(() => {
-    const saved = loadSavedState();
-    return saved?.pdfPrice ?? 20;
-  });
-  const [pdfPriceInput, setPdfPriceInput] = useState(() => {
-    const saved = loadSavedState();
-    return String(saved?.pdfPrice ?? 20);
-  });
+  const [pdfPrice, setPdfPrice] = useState(() => getCachedInitState()?.pdfPrice ?? 20);
+  const [pdfPriceInput, setPdfPriceInput] = useState(() => String(getCachedInitState()?.pdfPrice ?? 20));
   // Ingreso custom por semana dentro de la tabla del mes seleccionado
   const [editingWeekIncome, setEditingWeekIncome] = useState(null); // weekIdx 0-based | null
   const [weekIncomeInput, setWeekIncomeInput] = useState("");
@@ -529,9 +532,11 @@ export default function Dashboard90Dias({ onResetTutorial }) {
   // Notas
   const [noteInput, setNoteInput] = useState("");
   const [noteToDelete, setNoteToDelete] = useState(null);
+  // Estado de carga inicial (mientras se obtiene el estado de Supabase)
+  const [isLoading, setIsLoading] = useState(true);
   // ── Cargar estado desde Supabase al montar (con migración de localStorage)
   useEffect(() => {
-    if (!user) return;
+    if (!user) { setIsLoading(false); return; }
     async function init() {
       let dbState = await loadStateFromDB(user.id);
       if (!dbState) {
@@ -561,16 +566,17 @@ export default function Dashboard90Dias({ onResetTutorial }) {
         setPdfPriceInput(String(price));
       }
       isDBLoaded.current = true;
+      setIsLoading(false);
     }
     init();
   }, [user]);
 
-  // ── Auto-save en Supabase (debounced 1s)
+  // ── Auto-save en Supabase (debounced 2s)
   useEffect(() => {
     if (!isDBLoaded.current || !user) return;
     const timer = setTimeout(() => {
       saveStateToDB(user.id, state);
-    }, 1000);
+    }, 2000);
     return () => clearTimeout(timer);
   }, [state, user]);
 
@@ -589,27 +595,34 @@ export default function Dashboard90Dias({ onResetTutorial }) {
 
   // Filtro de visibilidad por frecuencia del hábito
   const DAY_LETTERS = ["D","L","M","X","J","V","S"];
-  const todayWeekday = DAY_LETTERS[new Date().getDay()];
-  const todayDateStr = new Date().toISOString().split("T")[0];
-  const isHabitVisibleToday = (h) => {
+  // Memoizados: sólo cambian una vez al día, no en cada render
+  const todayWeekday = useMemo(() => DAY_LETTERS[new Date().getDay()], []);
+  const todayDateStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const isHabitVisibleToday = useCallback((h) => {
     const sched = (state.habitSchedules || {})[h.id] || h;
     if (!sched.repeat || sched.repeat === "daily") return true;
     if (sched.repeat === "specific") return (sched.days || []).includes(todayWeekday);
     if (sched.repeat === "once") return sched.date === todayDateStr;
     return true;
-  };
+  }, [state.habitSchedules, todayWeekday, todayDateStr]);
 
-  const hiddenSet = new Set(state.hiddenHabits || []);
-  const totalChecked = Object.entries(state.todayChecks).filter(([id, v]) => v && !hiddenSet.has(id)).length;
-  const visibleFixedCount = HABITS.filter((h) => {
+  const hiddenSet = useMemo(() => new Set(state.hiddenHabits || []), [state.hiddenHabits]);
+  const totalChecked = useMemo(
+    () => Object.entries(state.todayChecks).filter(([id, v]) => v && !hiddenSet.has(id)).length,
+    [state.todayChecks, hiddenSet]
+  );
+  const visibleFixedCount = useMemo(() => HABITS.filter((h) => {
     if (hiddenSet.has(h.id)) return false;
     const ov = (state.habitOverrides || {})[h.id];
     return isHabitVisibleToday(ov ? { ...h, ...ov } : h);
-  }).length;
-  const totalHabits = visibleFixedCount + state.customHabits.filter(isHabitVisibleToday).length;
+  }).length, [hiddenSet, state.habitOverrides, isHabitVisibleToday]);
+  const totalHabits = useMemo(
+    () => visibleFixedCount + state.customHabits.filter(isHabitVisibleToday).length,
+    [visibleFixedCount, state.customHabits, isHabitVisibleToday]
+  );
   const currentWeekTarget = WEEK_TARGETS[state.currentWeek - 1] || WEEK_TARGETS[0];
-  const totalRevenue = state.monthlyRevenue.reduce((a, b) => a + b, 0);
-  const totalSales = state.weeklySales.reduce((a, b) => a + b, 0);
+  const totalRevenue = useMemo(() => state.monthlyRevenue.reduce((a, b) => a + b, 0), [state.monthlyRevenue]);
+  const totalSales = useMemo(() => state.weeklySales.reduce((a, b) => a + b, 0), [state.weeklySales]);
   const currentMonth = Math.ceil(state.currentWeek / 4);
   const monthRevenue = state.monthlyRevenue[currentMonth - 1] || 0;
   const monthTarget = (state.monthlyTargets || [1000, 2000, 3000])[currentMonth - 1] || 1000;
@@ -623,15 +636,16 @@ export default function Dashboard90Dias({ onResetTutorial }) {
   const phaseLabels = ["Adaptación", "Progreso", "Intensidad"];
   const phaseColors = ["teal", "amber", "rose"];
 
+  // Listas de hábitos por categoría — estables (vienen de constante HABITS)
   const menteHabits = HABITS.filter((h) => h.category === "mente");
   const cuerpoHabits = HABITS.filter((h) => h.category === "cuerpo");
   const negocioHabits = HABITS.filter((h) => h.category === "negocio");
 
   // ── Helpers UI
-  const showNotification = (msg, type = "success") => {
-    setNotification({ msg, type });
+  const showNotification = useCallback((msg) => {
+    setNotification({ msg });
     setTimeout(() => setNotification(null), 3000);
-  };
+  }, []);
 
   // ── Semana desbloqueada: han pasado 7 días desde el inicio de la semana
   const weekUnlocked =
@@ -694,7 +708,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
     return () => clearInterval(id);
   }, []);
 
-  const applyAchievements = (nextState) => {
+  const applyAchievements = useCallback((nextState) => {
     const newAchievements = checkNewAchievements(nextState);
     if (newAchievements) {
       const newIds = newAchievements.filter((id) => !nextState.achievements.includes(id));
@@ -705,7 +719,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
       return { ...nextState, achievements: newAchievements };
     }
     return nextState;
-  };
+  }, [showNotification]);
 
   // ── Acciones
   // ── Iniciar el plan (guarda la medianoche del día actual como inicio de semana)
@@ -722,7 +736,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
     showNotification("🚀 ¡Plan de 90 días iniciado! A por ello 🔥");
   };
 
-  const toggleHabit = (id) => {
+  const toggleHabit = useCallback((id) => {
     setState((s) => {
       const wasChecked = s.todayChecks[id];
       const xpPerAction = XP_PER_ACTION[id] ?? 10; // hábitos custom valen 10 XP
@@ -764,7 +778,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
 
       return applyAchievements(next);
     });
-  };
+  }, [isHabitVisibleToday, showNotification, applyAchievements]);
 
   const addSales = () => {
     const n = parseInt(salesInput);
@@ -913,7 +927,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
   };
 
   // ── Editar hábito existente
-  const openEditHabit = (habit) => {
+  const openEditHabit = useCallback((habit) => {
     const isFixed = HABITS.some((h) => h.id === habit.id);
     setEditHabitModal({ id: habit.id, isFixed, category: habit.category });
     setEditHabitName(habit.label);
@@ -922,7 +936,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
     setEditHabitRepeat(habit.repeat || "daily");
     setEditHabitDays(habit.days || []);
     setEditHabitDate(habit.date || "");
-  };
+  }, []);
   const closeEditHabit = () => setEditHabitModal(null);
 
   const confirmEditHabit = () => {
@@ -999,6 +1013,22 @@ export default function Dashboard90Dias({ onResetTutorial }) {
   // ────────────────────────────────────────
   // RENDER
   // ────────────────────────────────────────
+
+  // Pantalla de carga mientras se obtiene el estado de Supabase
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+        <div className="bg-premium" aria-hidden="true" />
+        <div className="flex flex-col items-center gap-4 z-10">
+          <div className="text-4xl animate-pulse">🔥</div>
+          <div className="text-amber-400 font-black text-sm tracking-widest uppercase">Cargando plan...</div>
+          <div className="w-32 h-1 bg-zinc-800 rounded-full overflow-hidden">
+            <div className="h-full bg-amber-500 rounded-full animate-[loading_1.2s_ease-in-out_infinite]" style={{ width: "60%" }} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 relative" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
@@ -2067,12 +2097,11 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                     <HabitRow
                       key={h.id}
                       id={h.id}
-                      icon={displayH.icon}
-                      label={displayH.label}
+                      habit={displayH}
                       pts={XP_PER_ACTION[h.id] ?? 10}
                       checked={state.todayChecks[h.id] || false}
                       onToggle={toggleHabit}
-                      onEdit={() => openEditHabit(displayH)}
+                      onEdit={openEditHabit}
                     />
                   );
                 })}
@@ -2103,12 +2132,11 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                     <HabitRow
                       key={h.id}
                       id={h.id}
-                      icon={displayH.icon}
-                      label={displayH.label}
+                      habit={displayH}
                       pts={XP_PER_ACTION[h.id] ?? 10}
                       checked={state.todayChecks[h.id] || false}
                       onToggle={toggleHabit}
-                      onEdit={() => openEditHabit(displayH)}
+                      onEdit={openEditHabit}
                     />
                   );
                 })}
@@ -2139,12 +2167,11 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                     <HabitRow
                       key={h.id}
                       id={h.id}
-                      icon={displayH.icon}
-                      label={displayH.label}
+                      habit={displayH}
                       pts={XP_PER_ACTION[h.id] ?? 10}
                       checked={state.todayChecks[h.id] || false}
                       onToggle={toggleHabit}
-                      onEdit={() => openEditHabit(displayH)}
+                      onEdit={openEditHabit}
                     />
                   );
                 })}
