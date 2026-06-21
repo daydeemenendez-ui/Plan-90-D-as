@@ -560,6 +560,23 @@ export default function Dashboard90Dias({ onResetTutorial }) {
             }
           });
         }
+        // Reset diario inmediato al cargar: si el día cambió, limpiar hábitos antes de setear estado
+        if (dbState.planStarted) {
+          const today = getTodayDateStr();
+          const weekNum = getWeekNumFromPlanStart(dbState.planStartDate);
+          if (dbState.lastHabitResetDate !== today) {
+            dbState = {
+              ...dbState,
+              todayChecks: Object.fromEntries(Object.keys(dbState.todayChecks || {}).map((k) => [k, false])),
+              customHabits: (dbState.customHabits || []).map((h) => ({ ...h, checked: false })),
+              keyTasks: (dbState.keyTasks || []).map((t) => ({ ...t, done: false })),
+              lastHabitResetDate: today,
+            };
+          }
+          if (dbState.lastWeekResetNum !== weekNum) {
+            dbState = { ...dbState, podcastsThisWeek: 0, lastWeekResetNum: weekNum };
+          }
+        }
         setState(mergeState(INITIAL_STATE, dbState));
         const price = dbState.pdfPrice ?? 20;
         setPdfPrice(price);
@@ -705,7 +722,10 @@ export default function Dashboard90Dias({ onResetTutorial }) {
     };
     check();
     const id = setInterval(check, 60_000);
-    return () => clearInterval(id);
+    // Al volver a la app (cambiar de pestaña, desbloquear móvil, etc.) resetear de inmediato
+    const onVisible = () => { if (document.visibilityState === "visible") check(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVisible); };
   }, []);
 
   const applyAchievements = useCallback((nextState) => {
