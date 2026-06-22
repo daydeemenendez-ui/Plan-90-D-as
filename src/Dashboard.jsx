@@ -426,7 +426,7 @@ const HabitRow = memo(function HabitRow({ id, habit, pts, checked, onToggle, onE
         onClick={(e) => { e.stopPropagation(); onEdit(habit); }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        className="sm:opacity-0 sm:group-hover:opacity-100 opacity-30 transition-opacity text-zinc-600 hover:text-zinc-300 active:text-zinc-300 flex-shrink-0 p-1.5 rounded-lg hover:bg-zinc-700/50 touch-manipulation"
+        className="opacity-40 hover:opacity-100 active:opacity-100 transition-opacity text-zinc-500 hover:text-zinc-200 active:text-zinc-200 flex-shrink-0 p-1.5 rounded-lg hover:bg-zinc-700/60 active:bg-zinc-700/60 touch-manipulation"
         title="Editar hábito"
       >
         <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 2l3 3-8 8H3v-3l8-8z"/></svg>
