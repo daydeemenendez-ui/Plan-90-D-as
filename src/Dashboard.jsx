@@ -423,7 +423,7 @@ const HabitRow = memo(function HabitRow({ id, habit, pts, checked, onToggle, onE
         +{pts} XP
       </span>
       <motion.button
-        onClick={(e) => { e.stopPropagation(); onEdit(); }}
+        onClick={(e) => { e.stopPropagation(); onEdit(habit); }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         className="sm:opacity-0 sm:group-hover:opacity-100 opacity-30 transition-opacity text-zinc-600 hover:text-zinc-300 active:text-zinc-300 flex-shrink-0 p-1.5 rounded-lg hover:bg-zinc-700/50 touch-manipulation"
@@ -509,6 +509,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
   const [editHabitRepeat, setEditHabitRepeat] = useState("daily");
   const [editHabitDays, setEditHabitDays] = useState([]);
   const [editHabitDate, setEditHabitDate] = useState("");
+  const [editHabitCategory, setEditHabitCategory] = useState("mente");
   // Edición inline de perfil
   const [editingName, setEditingName] = useState(false);
   const [editingSubtitle, setEditingSubtitle] = useState(false);
@@ -956,6 +957,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
     setEditHabitRepeat(habit.repeat || "daily");
     setEditHabitDays(habit.days || []);
     setEditHabitDate(habit.date || "");
+    setEditHabitCategory(habit.category || "mente");
   }, []);
   const closeEditHabit = () => setEditHabitModal(null);
 
@@ -991,7 +993,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
           habitSchedules: newSchedules,
           customHabits: s.customHabits.map((h) =>
             h.id === editHabitModal.id
-              ? { ...h, label: editHabitName.trim(), icon: editHabitEmoji, time: editHabitTime || null, ...scheduleEntry }
+              ? { ...h, label: editHabitName.trim(), icon: editHabitEmoji, time: editHabitTime || null, category: editHabitCategory, ...scheduleEntry }
               : h
           ),
         };
@@ -1343,7 +1345,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
 
       {/* ── Modal editar hábito */}
       {editHabitModal && (() => {
-        const cat = editHabitModal.category;
+        const cat = editHabitModal.isFixed ? editHabitModal.category : editHabitCategory;
         const catLabel = cat === "mente" ? "Mentalidad" : cat === "cuerpo" ? "Entrenamiento" : "Negocio";
         const catColor = cat === "mente" ? "text-teal-400" : cat === "cuerpo" ? "text-rose-400" : "text-amber-400";
         return (
@@ -1358,6 +1360,28 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 </h2>
                 <button onClick={closeEditHabit} className="text-zinc-500 hover:text-white transition-colors text-lg leading-none">×</button>
               </div>
+
+              {/* Categoría — solo hábitos custom */}
+              {!editHabitModal.isFixed && (
+                <div className="mb-4">
+                  <div className="text-xs text-zinc-500 font-black uppercase tracking-widest mb-2">Categoría</div>
+                  <div className="flex gap-2">
+                    {[{ id: "mente", label: "🧠 Mentalidad", color: "teal" }, { id: "cuerpo", label: "💪 Entreno", color: "rose" }, { id: "negocio", label: "🔥 Negocio", color: "amber" }].map((opt) => (
+                      <button
+                        key={opt.id}
+                        onClick={() => setEditHabitCategory(opt.id)}
+                        className={`flex-1 py-2 px-1 rounded-2xl text-xs font-bold transition-all text-center ${
+                          editHabitCategory === opt.id
+                            ? opt.color === "teal" ? "bg-teal-500/30 border border-teal-500/60 text-teal-300"
+                            : opt.color === "rose" ? "bg-rose-500/30 border border-rose-500/60 text-rose-300"
+                            : "bg-amber-500/30 border border-amber-500/60 text-amber-300"
+                            : "bg-zinc-800 text-zinc-500 hover:text-zinc-300 border border-zinc-700"
+                        }`}
+                      >{opt.label}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Nombre */}
               <div className="mb-4">
