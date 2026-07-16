@@ -615,7 +615,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
   const DAY_LETTERS = ["D","L","M","X","J","V","S"];
   // Memoizados: sólo cambian una vez al día, no en cada render
   const todayWeekday = useMemo(() => DAY_LETTERS[new Date().getDay()], []);
-  const todayDateStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const todayDateStr = useMemo(() => getTodayDateStr(), []);
   const isHabitVisibleToday = useCallback((h) => {
     const sched = (state.habitSchedules || {})[h.id] || h;
     if (!sched.repeat || sched.repeat === "daily") return true;
