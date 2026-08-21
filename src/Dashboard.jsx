@@ -394,28 +394,33 @@ const HabitRow = memo(function HabitRow({ id, habit, pts, checked, onToggle, onE
 
       <motion.button
         onClick={handleToggle}
-        whileTap={{ scale: 0.85 }}
-        className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
-          checked
-            ? "border-amber-400 bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.5)]"
-            : "border-zinc-600 hover:border-zinc-400"
-        }`}
+        whileTap={{ scale: 0.9 }}
+        aria-pressed={checked}
+        className="w-11 h-11 -m-2.5 flex items-center justify-center flex-shrink-0 rounded-xl touch-manipulation"
       >
-        <AnimatePresence>
-          {checked && (
-            <motion.svg
-              key="check"
-              initial={{ scale: 0, rotate: -10 }}
-              animate={{ scale: 1, rotate: 0 }}
-              exit={{ scale: 0 }}
-              transition={{ type: "spring", stiffness: 500, damping: 25 }}
-              className="w-3 h-3 text-zinc-900"
-              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </motion.svg>
-          )}
-        </AnimatePresence>
+        <span
+          className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${
+            checked
+              ? "border-amber-400 bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+              : "border-zinc-600 hover:border-zinc-400"
+          }`}
+        >
+          <AnimatePresence>
+            {checked && (
+              <motion.svg
+                key="check"
+                initial={{ scale: 0, rotate: -10 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                className="w-3 h-3 text-zinc-900"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </motion.svg>
+            )}
+          </AnimatePresence>
+        </span>
       </motion.button>
 
       <span className="text-base sm:text-lg flex-shrink-0">{icon}</span>
@@ -2155,11 +2160,11 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 <div className="flex gap-1.5">
                   <button
                     onClick={() => openHabitModal("mente")}
-                    className="text-xs font-bold px-2 py-1 rounded-lg border border-zinc-700 text-zinc-400 hover:border-teal-500/50 hover:text-teal-400 transition-all"
+                    className="text-xs font-bold px-3 py-2 rounded-lg border border-zinc-700 text-zinc-400 hover:border-teal-500/50 hover:text-teal-400 transition-all"
                   >+ Agregar</button>
                   <button
                     onClick={() => openRemoveModal("mente")}
-                    className="text-xs font-bold px-2 py-1 rounded-lg border border-zinc-700 text-zinc-500 hover:border-rose-500/30 hover:text-rose-400 transition-all"
+                    className="text-xs font-bold px-3 py-2 rounded-lg border border-zinc-700 text-zinc-500 hover:border-rose-500/30 hover:text-rose-400 transition-all"
                   >− Quitar</button>
                 </div>
               </div>
@@ -2190,11 +2195,11 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 <div className="flex gap-1.5">
                   <button
                     onClick={() => openHabitModal("cuerpo")}
-                    className="text-xs font-bold px-2 py-1 rounded-lg border border-zinc-700 text-zinc-400 hover:border-rose-500/50 hover:text-rose-400 transition-all"
+                    className="text-xs font-bold px-3 py-2 rounded-lg border border-zinc-700 text-zinc-400 hover:border-rose-500/50 hover:text-rose-400 transition-all"
                   >+ Agregar</button>
                   <button
                     onClick={() => openRemoveModal("cuerpo")}
-                    className="text-xs font-bold px-2 py-1 rounded-lg border border-zinc-700 text-zinc-500 hover:border-rose-500/30 hover:text-rose-400 transition-all"
+                    className="text-xs font-bold px-3 py-2 rounded-lg border border-zinc-700 text-zinc-500 hover:border-rose-500/30 hover:text-rose-400 transition-all"
                   >− Quitar</button>
                 </div>
               </div>
@@ -2225,11 +2230,11 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 <div className="flex gap-1.5">
                   <button
                     onClick={() => openHabitModal("negocio")}
-                    className="text-xs font-bold px-2 py-1 rounded-lg border border-zinc-700 text-zinc-400 hover:border-amber-500/50 hover:text-amber-400 transition-all"
+                    className="text-xs font-bold px-3 py-2 rounded-lg border border-zinc-700 text-zinc-400 hover:border-amber-500/50 hover:text-amber-400 transition-all"
                   >+ Agregar</button>
                   <button
                     onClick={() => openRemoveModal("negocio")}
-                    className="text-xs font-bold px-2 py-1 rounded-lg border border-zinc-700 text-zinc-500 hover:border-rose-500/30 hover:text-rose-400 transition-all"
+                    className="text-xs font-bold px-3 py-2 rounded-lg border border-zinc-700 text-zinc-500 hover:border-rose-500/30 hover:text-rose-400 transition-all"
                   >− Quitar</button>
                 </div>
               </div>
