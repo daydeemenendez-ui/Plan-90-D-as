@@ -2601,17 +2601,17 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.25, ease: "easeOut" }}
-                    className="rounded-2xl border border-teal-500/30 bg-teal-500/5 p-4 sm:p-5"
+                    className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 sm:p-5"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="text-xs text-teal-400 font-black uppercase tracking-widest">
+                      <h3 className="text-xs text-amber-400 font-black uppercase tracking-widest">
                         📅 MES {m + 1} — Semanas {firstWeekIdx + 1} a {firstWeekIdx + 4}
                       </h3>
                       <span className="text-xs text-zinc-500 font-bold">
-                        Meta total: <span className="text-teal-300 font-black">${totalIncome.toLocaleString()}</span>
+                        Meta total: <span className="text-amber-300 font-black">${totalIncome.toLocaleString()}</span>
                       </span>
                     </div>
-                    <p className="text-[10px] text-zinc-600 mb-4">Toca cualquier valor de <span className="text-teal-400">Meta $</span> para editar · el total del mes se actualiza solo</p>
+                    <p className="text-[10px] text-zinc-600 mb-4">Toca cualquier valor de <span className="text-amber-400">Meta $</span> para editar · el total del mes se actualiza solo</p>
 
                     {/* Cabecera de columnas */}
                     <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-2 px-1">
@@ -2741,7 +2741,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
             {/* Registrar ventas */}
             <div className="glass-card rounded-2xl p-4 sm:p-5">
               <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
-                <h3 className="text-xs text-teal-400 font-black uppercase tracking-widest flex-shrink-0">
+                <h3 className="text-xs text-amber-400 font-black uppercase tracking-widest flex-shrink-0">
                   Registrar Ventas
                 </h3>
                 <span className="text-xs text-zinc-500 flex-shrink-0">
@@ -3002,7 +3002,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
 
             {/* Reglas del negocio */}
             <div className="glass-card rounded-2xl p-4 sm:p-5">
-              <h3 className="text-xs text-rose-400 font-black uppercase tracking-widest mb-3">
+              <h3 className="text-xs text-amber-400 font-black uppercase tracking-widest mb-3">
                 📌 Reglas del Negocio
               </h3>
               <div className="space-y-2">
@@ -3135,7 +3135,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
 
             {/* Plan semanal mentalidad */}
             <div className="glass-card rounded-2xl p-4 sm:p-5">
-              <h3 className="text-xs text-violet-400 font-black uppercase tracking-widest mb-4">
+              <h3 className="text-xs text-teal-400 font-black uppercase tracking-widest mb-4">
                 📆 Plan Semanal Mentalidad
               </h3>
               <div className="space-y-3">
@@ -3217,7 +3217,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
 
             {/* Podcasts */}
             <div className="glass-card rounded-2xl p-4 sm:p-5">
-              <h3 className="text-xs text-amber-400 font-black uppercase tracking-widest mb-3">
+              <h3 className="text-xs text-teal-400 font-black uppercase tracking-widest mb-3">
                 🎧 Podcasts esta semana
               </h3>
               <div className="flex gap-3 mb-3">
@@ -3551,7 +3551,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
 
             {/* Estadísticas acumuladas (el nivel/XP ya se ve siempre en el header) */}
             <div className="glass-card rounded-2xl p-4 sm:p-5">
-              <h3 className="text-xs text-violet-400 font-black uppercase tracking-widest mb-4">
+              <h3 className="text-xs text-zinc-400 font-black uppercase tracking-widest mb-4">
                 📊 Estadísticas Acumuladas
               </h3>
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
