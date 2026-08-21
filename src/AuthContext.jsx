@@ -3,12 +3,20 @@ import { supabase } from "./supabase";
 
 const AuthContext = createContext(null);
 
+function hasStoredSession() {
+  try {
+    return !!localStorage.getItem("plan90_auth");
+  } catch {
+    return false;
+  }
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(hasStoredSession);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setLoading(false), 8000);
+    const timeout = setTimeout(() => setLoading(false), 2500);
 
     supabase.auth
       .getSession()
