@@ -103,6 +103,15 @@ const XP_PER_ACTION = {
 
 const LEVEL_THRESHOLDS = [0, 100, 250, 450, 700, 1000, 1400, 1850, 2400, 3000, 4000];
 
+const NAV_TABS = [
+  { id: "today",   label: "Hoy",     icon: "📋" },
+  { id: "negocio", label: "Negocio", icon: "💼" },
+  { id: "mente",   label: "Mente",   icon: "🧠" },
+  { id: "cuerpo",  label: "Cuerpo",  icon: "🏋️" },
+  { id: "logros",  label: "Logros",  icon: "🏆" },
+  { id: "resumen", label: "Notas",   icon: "📝" },
+];
+
 const ACHIEVEMENT_LIST = [
   { id: "first_sale", icon: "💰", label: "Primera Venta", desc: "Vende tu primer Producto" },
   { id: "week1", icon: "🔥", label: "Semana 1 Completa", desc: "Completa todos los hábitos de la semana 1" },
@@ -1736,7 +1745,33 @@ export default function Dashboard90Dias({ onResetTutorial }) {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:flex lg:items-start lg:gap-6">
+
+        {/* ── Sidebar (solo desktop) ── */}
+        <aside className="hidden lg:block lg:w-52 lg:flex-shrink-0 lg:sticky lg:top-24">
+          <nav
+            className="flex flex-col gap-1 p-2 rounded-2xl"
+            style={{ background: "rgba(24,24,27,0.7)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)" }}
+          >
+            {NAV_TABS.map((tab) => (
+              <motion.button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                whileTap={{ scale: 0.97 }}
+                className={`relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 text-left ${
+                  activeTab === tab.id
+                    ? "bg-amber-500 text-zinc-900 shadow-[0_0_16px_rgba(245,158,11,0.35)]"
+                    : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
+                }`}
+              >
+                <span className="text-base flex-shrink-0">{tab.icon}</span>
+                <span className="truncate">{tab.label}</span>
+              </motion.button>
+            ))}
+          </nav>
+        </aside>
+
+        <div className="lg:flex-1 lg:min-w-0">
 
         {/* ── Hero: Empezar Plan (solo visible antes de iniciar) */}
         {!state.planStarted && (
@@ -2059,18 +2094,11 @@ export default function Dashboard90Dias({ onResetTutorial }) {
           <StatCard icon="🏅" label="Monedas" value={state.coins} sub="para canjear" color="violet" />
         </div>
 
-        {/* ── Tabs */}
-        <div className="mb-4 sm:mb-6 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+        {/* ── Tabs (mobile/tablet — oculto en desktop, ahí manda el sidebar) */}
+        <div className="mb-4 sm:mb-6 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide lg:hidden">
           <div className="flex gap-1 p-1 rounded-2xl min-w-max sm:min-w-0"
                style={{ background: "rgba(24,24,27,0.7)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)" }}>
-            {[
-              { id: "today",   label: "📋 Hoy" },
-              { id: "negocio", label: "💼 Negocio" },
-              { id: "mente",   label: "🧠 Mente" },
-              { id: "cuerpo",  label: "🏋️ Cuerpo" },
-              { id: "logros",  label: "🏆 Logros" },
-              { id: "resumen", label: "📝 Notas" },
-            ].map((tab) => (
+            {NAV_TABS.map((tab) => (
               <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -2081,7 +2109,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                     : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
                 }`}
               >
-                {tab.label}
+                {tab.icon} {tab.label}
               </motion.button>
             ))}
           </div>
@@ -3867,6 +3895,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
           </motion.div>
         )}
 
+        </div>
       </div>
     </div>
   );
