@@ -3549,23 +3549,11 @@ export default function Dashboard90Dias({ onResetTutorial }) {
               </div>
             </div>
 
-            {/* Progreso de nivel */}
+            {/* Estadísticas acumuladas (el nivel/XP ya se ve siempre en el header) */}
             <div className="glass-card rounded-2xl p-4 sm:p-5">
               <h3 className="text-xs text-violet-400 font-black uppercase tracking-widest mb-4">
-                ⚡ Tu Progreso
+                📊 Estadísticas Acumuladas
               </h3>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
-                  <span className="text-2xl font-black text-amber-400">{level}</span>
-                </div>
-                <div className="flex-1">
-                  <div className="text-white font-black text-lg">Nivel {level}</div>
-                  <div className="text-xs text-zinc-500 mb-2">
-                    {safeXP} XP · Próx: {LEVEL_THRESHOLDS[level] ? `${LEVEL_THRESHOLDS[level]} XP` : "MAX"}
-                  </div>
-                  <ProgressBar value={xpProgress} max={100} color="amber" height="h-3" />
-                </div>
-              </div>
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 <div className="text-center p-2 sm:p-3 bg-zinc-950 rounded-xl border border-zinc-800">
                   <div className="text-lg sm:text-xl font-black text-teal-400">
