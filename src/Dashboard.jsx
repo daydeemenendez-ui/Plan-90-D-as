@@ -104,7 +104,7 @@ const XP_PER_ACTION = {
 const LEVEL_THRESHOLDS = [0, 100, 250, 450, 700, 1000, 1400, 1850, 2400, 3000, 4000];
 
 const ACHIEVEMENT_LIST = [
-  { id: "first_sale", icon: "💰", label: "Primera Venta", desc: "Vende tu primer PDF" },
+  { id: "first_sale", icon: "💰", label: "Primera Venta", desc: "Vende tu primer Producto" },
   { id: "week1", icon: "🔥", label: "Semana 1 Completa", desc: "Completa todos los hábitos de la semana 1" },
   { id: "streak7", icon: "⚡", label: "Racha de 7 días", desc: "7 días consecutivos con todos los hábitos" },
   { id: "book1", icon: "📚", label: "Lector Nivel 1", desc: "Termina el libro 1" },
@@ -1543,7 +1543,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
               <p className="text-xs text-zinc-600 mb-5">
                 Nivel <span className="text-amber-400 font-black">{level}</span> ·{" "}
                 <span className="text-amber-400 font-black">{state.achievements.length}</span> logros desbloqueados ·{" "}
-                <span className="text-teal-400 font-black">{totalSales}</span> PDFs vendidos
+                <span className="text-teal-400 font-black">{totalSales}</span> Productos vendidos
               </p>
 
               <button
@@ -2050,7 +2050,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
             icon="💰"
             label="Ingresos"
             value={`$${totalRevenue.toLocaleString()}`}
-            sub={`${totalSales} PDFs vendidos`}
+            sub={`${totalSales} Productos vendidos`}
             color="teal"
           />
           <StatCard icon="🏅" label="Monedas" value={state.coins} sub="para canjear" color="violet" />
@@ -2498,7 +2498,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 <div>
                   <div className="text-xs text-zinc-500">Meta ventas</div>
                   <div className="text-xl sm:text-2xl font-black text-white">{pdfsNeeded}</div>
-                  <div className="text-xs text-teal-400">PDFs</div>
+                  <div className="text-xs text-teal-400">Productos</div>
                 </div>
                 <div>
                   <div className="text-xs text-zinc-500">Inv/día</div>
@@ -2580,7 +2580,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                     {/* Cabecera de columnas */}
                     <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-2 px-1">
                       <div className="text-[9px] sm:text-[10px] text-zinc-600 font-black uppercase tracking-wide sm:tracking-widest">Sem</div>
-                      <div className="text-[9px] sm:text-[10px] text-zinc-600 font-black uppercase tracking-wide sm:tracking-widest text-center">PDFs</div>
+                      <div className="text-[9px] sm:text-[10px] text-zinc-600 font-black uppercase tracking-wide sm:tracking-widest text-center">Productos</div>
                       <div className="text-[9px] sm:text-[10px] text-zinc-600 font-black uppercase tracking-wide sm:tracking-widest text-center">Inv/d</div>
                       <div className="text-[9px] sm:text-[10px] text-zinc-600 font-black uppercase tracking-wide sm:tracking-widest text-center">Meta $</div>
                       <div className="text-[9px] sm:text-[10px] text-zinc-600 font-black uppercase tracking-wide sm:tracking-widest text-center">Real</div>
@@ -2687,7 +2687,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                       <span className="text-xs text-zinc-500 font-bold">Total mes</span>
                       <div className="flex flex-wrap gap-x-3 gap-y-1">
                         <span className="text-xs text-zinc-400">
-                          <span className="text-white font-black">{weeks.reduce((a, w) => a + w.sales, 0)}</span> PDFs
+                          <span className="text-white font-black">{weeks.reduce((a, w) => a + w.sales, 0)}</span> Productos
                         </span>
                         <span className="text-xs text-zinc-400">
                           <span className="text-teal-300 font-black">${totalIncome.toLocaleString()}</span> meta
@@ -2709,7 +2709,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                   Registrar Ventas
                 </h3>
                 <span className="text-xs text-zinc-500 flex-shrink-0">
-                  Precio: <span className="text-violet-400 font-black">${pdfPrice}</span>/PDF
+                  Precio: <span className="text-violet-400 font-black">${pdfPrice}</span>/Producto
                 </span>
               </div>
               <div className="flex gap-3">
@@ -2719,7 +2719,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                   value={salesInput}
                   onChange={(e) => setSalesInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addSales()}
-                  placeholder="# de PDFs vendidos"
+                  placeholder="# de Productos vendidos"
                   className="flex-1 min-w-0 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-amber-500 transition-colors"
                 />
                 <button
@@ -2732,11 +2732,11 @@ export default function Dashboard90Dias({ onResetTutorial }) {
               {/* Preview del ingreso */}
               {salesInput && parseInt(salesInput) > 0 ? (
                 <p className="text-xs text-zinc-400 mt-2">
-                  {parseInt(salesInput)} PDFs × <span className="text-violet-400 font-bold">${pdfPrice}</span> = <span className="text-amber-400 font-black">${(parseInt(salesInput) * pdfPrice).toLocaleString()}</span>
+                  {parseInt(salesInput)} Productos × <span className="text-violet-400 font-bold">${pdfPrice}</span> = <span className="text-amber-400 font-black">${(parseInt(salesInput) * pdfPrice).toLocaleString()}</span>
                 </p>
               ) : (
                 <p className="text-xs text-zinc-600 mt-2">
-                  Precio por PDF: <span className="text-violet-400/70 font-bold">${pdfPrice}</span> · cámbialo en la calculadora ⚙️
+                  Precio por Producto: <span className="text-violet-400/70 font-bold">${pdfPrice}</span> · cámbialo en la calculadora ⚙️
                 </p>
               )}
             </div>
@@ -2770,7 +2770,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                   newTargets[mIdx] = newMonthTotal;
                   return { ...s, weeklyIncomes: newIncomes, monthlyTargets: newTargets, pdfPrice: price };
                 });
-                showNotification(`⚙️ Ingreso S${state.currentWeek}: $${income} · Precio: $${price} · PDFs: ${closestPdfs(income, price)}`);
+                showNotification(`⚙️ Ingreso S${state.currentWeek}: $${income} · Precio: $${price} · Productos: ${closestPdfs(income, price)}`);
               };
 
               const currentPdfs = closestPdfs(weekIncome, pdfPrice);
@@ -2826,7 +2826,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                     {/* Columna 2 — Precio */}
                     <div className="flex-1">
                       <div className="text-xs text-zinc-500 mb-1.5">
-                        Precio por PDF
+                        Precio por Producto
                         <span className="text-zinc-700 ml-1">(actual <span className="text-violet-400/70">${pdfPrice}</span>)</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -2858,7 +2858,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                     {/* Columna 3 — PDFs (editable) */}
                     <div className="flex-1">
                       <div className="text-xs text-zinc-500 mb-1.5">
-                        PDFs necesarios
+                        Productos necesarios
                         <span className="text-zinc-700 ml-1">(actual <span className="text-violet-400/70">{currentPdfs}</span>)</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -2898,7 +2898,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                     <span className="text-zinc-700">·</span>
                     <span className="text-zinc-400">Precio <span className="text-violet-400 font-black">${pdfPrice}</span></span>
                     <span className="text-zinc-700">·</span>
-                    <span className="text-zinc-400">PDFs <span className="text-white font-black">{currentPdfs}</span></span>
+                    <span className="text-zinc-400">Productos <span className="text-white font-black">{currentPdfs}</span></span>
                     <span className="text-zinc-700">·</span>
                     <button
                       onClick={() => {
@@ -3542,7 +3542,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 </div>
                 <div className="text-center p-2 sm:p-3 bg-zinc-950 rounded-xl border border-zinc-800">
                   <div className="text-lg sm:text-xl font-black text-amber-400">{totalSales}</div>
-                  <div className="text-xs text-zinc-500">PDFs</div>
+                  <div className="text-xs text-zinc-500">Productos</div>
                 </div>
               </div>
             </div>

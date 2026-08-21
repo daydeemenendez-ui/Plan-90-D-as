@@ -390,7 +390,7 @@ function buildSteps(platform) {
               },
               {
                 icon: "📄",
-                title: "Calculadora de PDFs",
+                title: "Calculadora de Productos",
                 desc: "¿Vendes infoproductos? Calcula cuántos necesitas vender para llegar a tu meta",
               },
               {
