@@ -532,6 +532,8 @@ export default function Dashboard90Dias({ onResetTutorial }) {
   // Edición inline de tareas clave
   const [editingTaskIdx, setEditingTaskIdx] = useState(null);
   const [editingTaskValue, setEditingTaskValue] = useState("");
+  // Sub-navegación dentro de la pestaña Negocio (metas / ventas / reglas)
+  const [negocioSubTab, setNegocioSubTab] = useState("metas");
   // Selección y edición de meta de mes (negocio)
   const [selectedMonthCard, setSelectedMonthCard] = useState(null); // null | 0 | 1 | 2
   const [editingMonthTarget, setEditingMonthTarget] = useState(false);
@@ -2361,6 +2363,30 @@ export default function Dashboard90Dias({ onResetTutorial }) {
         ══════════════════════════════════════ */}
         {activeTab === "negocio" && (
           <motion.div key="negocio" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.3, ease:"easeOut" }} className="space-y-4 sm:space-y-6">
+
+            {/* ── Sub-nav de Negocio: Metas / Ventas / Reglas ── */}
+            <div className="flex gap-1 p-1 rounded-2xl"
+                 style={{ background: "rgba(24,24,27,0.7)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)" }}>
+              {[
+                { id: "metas",  label: "🎯 Metas" },
+                { id: "ventas", label: "💰 Ventas" },
+                { id: "reglas", label: "📌 Reglas" },
+              ].map((sub) => (
+                <button
+                  key={sub.id}
+                  onClick={() => setNegocioSubTab(sub.id)}
+                  className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 ${
+                    negocioSubTab === sub.id
+                      ? "bg-amber-500 text-zinc-900 shadow-[0_0_16px_rgba(245,158,11,0.35)]"
+                      : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
+                  }`}
+                >
+                  {sub.label}
+                </button>
+              ))}
+            </div>
+
+            {negocioSubTab === "metas" && (<>
             {/* Objetivos mensuales */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
@@ -2738,6 +2764,9 @@ export default function Dashboard90Dias({ onResetTutorial }) {
               })()}
             </AnimatePresence>
 
+            </>)}
+
+            {negocioSubTab === "ventas" && (<>
             {/* Registrar ventas */}
             <div className="glass-card rounded-2xl p-4 sm:p-5">
               <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
@@ -3000,6 +3029,9 @@ export default function Dashboard90Dias({ onResetTutorial }) {
               </div>
             </div>
 
+            </>)}
+
+            {negocioSubTab === "reglas" && (<>
             {/* Reglas del negocio */}
             <div className="glass-card rounded-2xl p-4 sm:p-5">
               <h3 className="text-xs text-amber-400 font-black uppercase tracking-widest mb-3">
@@ -3019,6 +3051,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                 ))}
               </div>
             </div>
+            </>)}
           </motion.div>
         )}
 
