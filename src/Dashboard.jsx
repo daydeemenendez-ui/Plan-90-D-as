@@ -775,11 +775,13 @@ export default function Dashboard90Dias({ onResetTutorial }) {
       // Bonus si completa todo el día
       const bonusXP = !wasChecked && allDone ? 100 : 0;
 
-      // Actualizar contadores semanales para training/walk
+      // Actualizar contadores semanales para training/walk/podcast
       let trainingsThisWeek = s.trainingsThisWeek;
       let walksThisWeek = s.walksThisWeek;
+      let podcastsThisWeek = s.podcastsThisWeek;
       if (id === "training") trainingsThisWeek += wasChecked ? -1 : 1;
       if (id === "walk") walksThisWeek += wasChecked ? -1 : 1;
+      if (id === "podcast") podcastsThisWeek = Math.max(0, Math.min(3, podcastsThisWeek + (wasChecked ? -1 : 1)));
 
       const totalXP = newXP + bonusXP;
       const next = {
@@ -790,6 +792,7 @@ export default function Dashboard90Dias({ onResetTutorial }) {
         coins: !wasChecked ? (isNaN(s.coins) ? 5 : s.coins + 5) : Math.max(0, (isNaN(s.coins) ? 0 : s.coins) - 5),
         trainingsThisWeek: Math.max(0, trainingsThisWeek),
         walksThisWeek: Math.max(0, walksThisWeek),
+        podcastsThisWeek,
       };
 
       if (!wasChecked) {
@@ -3197,6 +3200,9 @@ export default function Dashboard90Dias({ onResetTutorial }) {
                         return {
                           ...s,
                           podcastsThisWeek: newCount,
+                          // Sincroniza con el hábito "podcast" de la sección Hoy (mismo id exacto,
+                          // así los hábitos custom del usuario nunca quedan afectados)
+                          todayChecks: { ...s.todayChecks, podcast: gaining },
                           xp: gaining ? (isNaN(s.xp) ? 5 : s.xp + 5) : Math.max(0, isNaN(s.xp) ? 0 : s.xp - 5),
                           coins: gaining ? (isNaN(s.coins) ? 3 : s.coins + 3) : Math.max(0, isNaN(s.coins) ? 0 : s.coins - 3),
                         };
